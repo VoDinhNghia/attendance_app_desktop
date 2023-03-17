@@ -17,7 +17,7 @@ from db_image import get_DB_image
 from delete_file import Delete_file
 from view_image import Xem_Image
 from excel import Export
-from date import NgayTim, Ngay_today
+from date import SearchDate, CurrentDate
 from accuracy import Accuracy
 from get_camera import get_Camera
 
@@ -313,8 +313,8 @@ def FC_DangNhap():
                             gray=cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
                             gray = cv2.fastNlMeansDenoising(gray,None,4,5,11)
                             faces=detector.detectMultiScale(gray,1.3,5)
-                            Ngay, Gio,start_dd_sang, end_dd_sang,start_dd_chieu,end_dd_chieu = Ngay_today.return_Ngay()
-                            gio_to_excel,gio_end_to_excel = Ngay_today.gioToExcel()
+                            Ngay, Gio,start_dd_sang, end_dd_sang,start_dd_chieu,end_dd_chieu = CurrentDate.dateHourTimeAttendance()
+                            gio_to_excel,gio_end_to_excel = CurrentDate.setupHourAutoExport()
                             info_tt = QuerySql.fetchHistoryAttendanceByCurrentDate()
                             ids = []
                             for i in info_tt:
@@ -380,7 +380,7 @@ def FC_DangNhap():
                 def btn_dsdiemdanh():
                     Tim_ngay = str(Entry_dsdiemdanh.get())
                     global x
-                    x = NgayTim.format_ngay(Tim_ngay)
+                    x = SearchDate.formatDate(Tim_ngay)
                     rows_ds = QuerySql.queryHistoryByDate(x)
                     tk_ds = Tk()
                     tk_ds.title("Danh sách điểm danh")
@@ -623,7 +623,7 @@ def FC_DangNhap():
                     gray = cv2.fastNlMeansDenoising(gray,None,4,5,11)
                     faces=detector.detectMultiScale(gray,1.3,5)
                     global ID, Name, Ngay,Gio
-                    Ngay, Gio,start_dd_sang, end_dd_sang,start_dd_chieu,end_dd_chieu = Ngay_today.return_Ngay()                   
+                    Ngay, Gio,start_dd_sang, end_dd_sang,start_dd_chieu,end_dd_chieu = CurrentDate.dateHourTimeAttendance()                   
                     info_tt = QuerySql.fetchHistoryAttendanceByCurrentDate()
                     ids = []
                     for i in info_tt:
