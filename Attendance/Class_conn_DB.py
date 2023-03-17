@@ -1,74 +1,47 @@
 import pymysql
 
-class connect_DB:
-    """
-    Class connect to database mysql through Apache Xampp.\n
-    Database have three table such as: dangnhap, labelface , ttdiemdanh.
-    """
+class ConnectDb:
     @staticmethod
-    def con_mysql():
-        conn = pymysql.connect(host='localhost', user='root', passwd="", db='diemdanh')
-        cur = conn.cursor()
-        return conn, cur
+    def connectMysql():
+        connect = pymysql.connect(host='localhost', user='root', passwd="root", db='attendance')
+        cursor = connect.cursor()
+        return connect, cursor
 
-class sql_DB:
-    """
-    Class query from database diemdanh on mysql.
-    """
+class QuerySql:
     @staticmethod
-    def table_DN():
-        """
-        Function query and return a list login information on table dangnhap.\n
-        Hàm truy vấn và trả về danh sách thông tin đăng nhập ở table đăng nhập.
-        """
-        cur = connect_DB.con_mysql()[1]
-        sql = "SELECT * from dangnhap"
+    def login():
+        cur = ConnectDb.connectMysql()[1]
+        sql = "SELECT * from users"
         cur.execute(sql)
         return cur.fetchall() 
 
     @classmethod
     def update_Admin(cls, new_username, new_pass):
-        """
-        Function use to update table dangnhap.\n
-        Hàm dùng để update table dangnhap
-        """
-        conn, cur = connect_DB.con_mysql()
-        sql = "update dangnhap set UserName = %s, PassWord = %s"
+        conn, cur = ConnectDb.connectMysql()
+        sql = "update users set username = %s, password = %s"
         cur.execute(sql,(new_username,new_pass))
         conn.commit()
     
     @classmethod
     def sql_Labelface(cls, Id):
-        """
-        Function return a list information on table labelface with condition ID = Id.\n
-        Hàm trả về danh sách thông tin trong bảng labelface với điều kiện ID=Id truyền vào.
-        """
-        conn,cur = connect_DB.con_mysql()
-        cur.execute("select * from labelface where ID=%s", Id)
+        conn,cur = ConnectDb.connectMysql()
+        cur.execute("select * from label_face where ID=%s", Id)
         conn.commit()
         arr_check_id = cur.fetchall()
         return arr_check_id
 
     @staticmethod
     def ds_sql_Labelface():
-        """
-        Function return a list information on table labelface.\n
-        Hàm trả về danh sách thông tin trong bảng labelface.
-        """
-        conn,cur = connect_DB.con_mysql()
-        cur.execute("select * from labelface")
+        conn,cur = ConnectDb.connectMysql()
+        cur.execute("select * from label_face")
         conn.commit()
         rows = cur.fetchall()
         return rows
 
     @staticmethod
     def sql_ttdiemdanh_curdate():
-        """
-        Function return a list current date attendance.\n
-        Hàm trả về danh sách điểm danh ngày hiện tại
-        """
-        conn,cur = connect_DB.con_mysql()
-        query_tt = "select * from ttdiemdanh where Ngay= curdate()"
+        conn,cur = ConnectDb.connectMysql()
+        query_tt = "select * from history_attendance where date= curdate()"
         cur.execute(query_tt)
         conn.commit()
         info_tt = cur.fetchall()
@@ -76,23 +49,15 @@ class sql_DB:
 
     @classmethod
     def insert_ttdiemdanh(cls, msnv, hoten, ngay, gio):
-        """
-        Function insert attendance information to on table ttdiemdanh.\n
-        Hàm insert thông tin điểm danh vào table ttdiemdanh
-        """
-        conn,cur = connect_DB.con_mysql()
-        sql_tt = "INSERT INTO ttdiemdanh(ID,Name,Ngay,Gio) Values(%s,%s,%s,%s)"
+        conn,cur = ConnectDb.connectMysql()
+        sql_tt = "INSERT INTO history_attendance(ID,name,date,time) Values(%s,%s,%s,%s)"
         cur.execute(sql_tt,(msnv,hoten,ngay,gio))
         conn.commit()
     
     @classmethod
     def insert_labelface(cls, Id, Name):
-        """
-        Insert addition new people to database (table labelface).\n
-        Chèn thêm người mới vào database
-        """
-        conn, cur = connect_DB.con_mysql()
-        cmd="INSERT INTO labelface(ID,Name) Values(%s,%s)"
+        conn, cur = ConnectDb.connectMysql()
+        cmd="INSERT INTO label_face(ID,name) Values(%s,%s)"
         Id = str(Id)
         Name = str(Name)
         cur.execute(cmd,(Id,Name))
@@ -100,12 +65,8 @@ class sql_DB:
 
     @staticmethod
     def ttdiemdanhToExcel():
-        """
-        Return a list information current day attendance to export to excel.\n
-        Trả về thông tin danh sách điểm danh ngày hôm nay để export đến excel
-        """
-        conn,cur = connect_DB.con_mysql()
-        cur.execute("select * from ttdiemdanh where Ngay = curdate()")
+        conn,cur = ConnectDb.connectMysql()
+        cur.execute("select * from history_attendance where date = curdate()")
         conn.commit()
         rows_auto= cur.fetchall()
         msnv = []
@@ -122,12 +83,8 @@ class sql_DB:
 
     @classmethod
     def sql_ttdiemdanh_theoNgay(cls, x):
-        """
-        Function query data on table ttdiemdanh with condition Ngay=x.\n
-        Hàm truy vấn dữ liệu trong bảng ttdiemdanh với điều kiện Ngay= ngày truyền vào.
-        """
-        conn, cur = connect_DB.con_mysql()
-        sql = "select * from ttdiemdanh where Ngay = %s"
+        conn, cur = ConnectDb.connectMysql()
+        sql = "select * from history_attendance where date = %s"
         cur.execute(sql, str(x))
         conn.commit()
         rows_ds = cur.fetchall()
@@ -135,20 +92,14 @@ class sql_DB:
 
     @classmethod
     def sql_thongke(cls, x):
-        """
-        Function use to implement feature statistic with parameter such as day (x).\n
-        Hàm dùng để thực hiện chức năng thống kê và tham số truyền vào là ngày
-        """
-        conn, cur = connect_DB.con_mysql()
-        sql_lb = "SELECT * FROM labelface"
+        conn, cur = ConnectDb.connectMysql()
+        sql_lb = "SELECT * FROM label_face"
         cur.execute(sql_lb)
         arr_lb = cur.fetchall()
-        #print(arr_lb)
-        sql_tk = "SELECT ID, Name FROM ttdiemdanh WHERE Ngay= %s"
+        sql_tk = "SELECT ID, Name FROM history_attendance WHERE date= %s"
         cur.execute(sql_tk,str(x))
         conn.commit()
         arr_tt = cur.fetchall()
-        #print(arr_tt)
         arr_chuadd = []
         for i in range(len(arr_lb)):
             for j in arr_tt:
@@ -159,22 +110,14 @@ class sql_DB:
 
     @classmethod
     def del_ttdiemdanh(cls, msnv, gio):
-        """
-        Function delete a line on table ttdiemdanh with two parameter such as msnv and hour attendance.\n
-        Hàm xóa một dòng trong table ttdiemdanh với 2 tham số truyền vào là msnv và gio điểm danh.
-        """
-        conn, cur = connect_DB.con_mysql()
-        sql_del = "DELETE FROM ttdiemdanh WHERE ID = %s AND Gio = %s"
+        conn, cur = ConnectDb.connectMysql()
+        sql_del = "DELETE FROM history_attendance WHERE ID = %s AND time = %s"
         cur.execute(sql_del,(str(msnv),str(gio)))
         conn.commit()
 
     @classmethod
     def del_labelface(cls, Id):
-        """
-        Function delete a line on table labelface with parameter such as msnv (ID).\n
-        Hàm xóa một dòng trong table labelface với tham số truyền vào là msnv.
-        """
-        conn, cur = connect_DB.con_mysql()
-        sql_del = "DELETE FROM labelface WHERE ID = %s"
+        conn, cur = ConnectDb.connectMysql()
+        sql_del = "DELETE FROM label_face WHERE ID = %s"
         cur.execute(sql_del,str(Id))
         conn.commit()

@@ -1,19 +1,11 @@
-from Class_conn_DB import connect_DB
+from class_conn_db import ConnectDb
 import os
-from PIL import Image, ImageTk
+from PIL import Image
 import numpy as np 
 
 class get_DB_image:
-    """
-    Class get data face and ID to trainning and return profile when predict.
-    Lớp lấy dữ liệu face and ID để train và trả về profile khi dự đoán.
-    """
     @classmethod
     def getImagesAndLabels(cls, path):
-        """
-        Function get list face image and ID in folder.\n
-        Hàm lấy danh sách image face và ID trong thư mục.
-        """
         imagePaths=[os.path.join(path,f) for f in os.listdir(path)] 
         faces=[]
         IDs=[]
@@ -27,19 +19,13 @@ class get_DB_image:
         
     @classmethod
     def getProfile(cls, id):
-        """
-        Function return profile such as ID and Name equal with parameter ID (ID predict).\n
-        Hàm trả về profile mã số và name khi ID trùng với ID truyền vào (ID predict).
-        """
-        conn, cur = connect_DB.con_mysql()
-        cmd="SELECT * FROM labelface WHERE ID= %s"
-        #error not reltime
+        conn, cur = ConnectDb.connectMysql()
+        cmd="SELECT * FROM label_face WHERE ID= %s"
         cur.execute(cmd, str(id))
         conn.commit()
         cursor = cur.fetchall() 
         profile=None
         for row in cursor:
             profile=row
-        #conn.close()
         return profile
 

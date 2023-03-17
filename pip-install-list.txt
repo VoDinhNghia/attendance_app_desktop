@@ -1,0 +1,7 @@
+pip install imagehash
+pip install Pillow
+pip install pywin32
+pip install pymysql
+pip install xlwt
+pip install opencv-contrib-python
+pip install opencv-python

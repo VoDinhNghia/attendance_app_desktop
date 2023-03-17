@@ -1,16 +1,10 @@
-"""
-Title: File giao diện chính của ứng dụng. (contains gui file main of app)
-author: Võ Đình Nghĩa. (git name: VoDinhNghia, youtube: https://www.youtube.com/watch?v=2I5mN3nljB0, facebook: https://www.facebook.com/dinhnghia.95)
-Day: 15-09-2020.
-Note: Viết document cho mỗi lớp và function. (write document for class and function.)
-"""
+import os
 import tkinter
 from tkinter import*
 from tkinter import ttk, messagebox
 from PIL import Image, ImageTk
 import numpy as np
-import pickle
-from tkinter.filedialog import askopenfilename
+import cv2
 from cv2 import *
 import win32com.client
 import imagehash
@@ -18,14 +12,14 @@ import hashlib
 import threading 
 from threading import Lock
 import time as time_out
-from Class_conn_DB import connect_DB, sql_DB
-from Class_DB_Image import get_DB_image
-from Class_delete_file import Delete_file
-from Class_Xem_image import Xem_Image
-from Class_to_excel import Export
-from Class_Ngay import NgayTim, Ngay_today
-from Class_accuracy import Accuracy
-from Class_get_camera import get_Camera
+from class_conn_db import QuerySql
+from class_db_image import get_DB_image
+from class_delete_file import Delete_file
+from class_view_image import Xem_Image
+from class_excel import Export
+from class_date import NgayTim, Ngay_today
+from class_accuracy import Accuracy
+from class_get_camera import get_Camera
 
 root = Tk()
 root.title('Ứng dụng điểm danh')
@@ -53,7 +47,7 @@ print(password)
 def FC_DangNhap():
     username = Ent_username.get()
     password = Ent_password.get()
-    myresult = sql_DB.table_DN()
+    myresult = QuerySql.login()
     for i in myresult:
         md5 = hashlib.md5()
         md5.update(password.encode())
@@ -139,9 +133,9 @@ def FC_DangNhap():
                         if(len(id)==0 or len(name)==0):
                             messagebox.showinfo("Thông báo", "Vui lòng nhập thông tin vào")
                         elif id.isdecimal:
-                            arr_check_id = sql_DB.sql_Labelface(id)
+                            arr_check_id = QuerySql.sql_Labelface(id)
                             if(len(arr_check_id)==0):
-                                sql_DB.insert_labelface(id,name)
+                                QuerySql.insert_labelface(id,name)
                                 sampleNum = 0
                                 while(True):
                                     if (last_ret is not None) and (latest_frame is not None):
@@ -165,7 +159,7 @@ def FC_DangNhap():
                                             # speaker = win32com.client.Dispatch("SAPI.SpVoice")
                                             # speaker.Speak("Detected two face in frame, please restarted")
                                             messagebox.showinfo('Thông báo',"Tìm thấy 2 gương mặt trong cùng frame")
-                                            sql_DB.del_labelface(id)
+                                            QuerySql.del_labelface(id)
                                             path = 'anh_data_hinh'
                                             Delete_file(path,id).delete()
                                             path_ss = 'data_sosanh'
@@ -244,7 +238,7 @@ def FC_DangNhap():
                     btn_them_data_test.place(x= 300, y=90)
                 #space+tab => lùi vào 1 space còn shift+tab ngược lại
                 def btn_danhsachNguoi():
-                    rows = sql_DB.ds_sql_Labelface()
+                    rows = QuerySql.ds_sql_Labelface()
                     tk_ds = Tk()
                     tk_ds.title("Danh sách nhân viên")
                     tk_ds.geometry("550x550")
@@ -287,7 +281,7 @@ def FC_DangNhap():
                                 tv.delete(row)
                             except:
                                 print('error exception')
-                            sql_DB.del_labelface(id_f)
+                            QuerySql.del_labelface(id_f)
                             Delete_file(path, id_f).delete()
                             path_xoaNV = 'data_sosanh'
                             Delete_file(path_xoaNV, id_f).delete()                                   
@@ -321,7 +315,7 @@ def FC_DangNhap():
                             faces=detector.detectMultiScale(gray,1.3,5)
                             Ngay, Gio,start_dd_sang, end_dd_sang,start_dd_chieu,end_dd_chieu = Ngay_today.return_Ngay()
                             gio_to_excel,gio_end_to_excel = Ngay_today.gioToExcel()
-                            info_tt = sql_DB.sql_ttdiemdanh_curdate()
+                            info_tt = QuerySql.sql_ttdiemdanh_curdate()
                             ids = []
                             for i in info_tt:
                                 ids.append(i[0])
@@ -356,7 +350,7 @@ def FC_DangNhap():
                                                 print("gia tri so sánh 2 bức ảnh: ",c)
                                                 if(c < 24 and (ID_ss == int(profile[0]))):
                                                     print("Điểm danh đúng rồi")
-                                                    sql_DB.insert_ttdiemdanh(profile[0],profile[1],Ngay,Gio)
+                                                    QuerySql.insert_ttdiemdanh(profile[0],profile[1],Ngay,Gio)
                                                     #Xóa ảnh cũ cùng ID để thêm ảnh mới vào
                                                     path2 = 'data_diemdanh_dung'
                                                     Delete_file(path2, int(profile[0])).delete()
@@ -373,7 +367,7 @@ def FC_DangNhap():
                                 img = cv2.resize(img, (780,480))
                                 cv2.imshow('Frame',img) 
                             if(Gio>gio_to_excel and Gio<gio_end_to_excel):
-                                msnv, hotennv, list_day, list_gio = sql_DB.ttdiemdanhToExcel()
+                                msnv, hotennv, list_day, list_gio = QuerySql.ttdiemdanhToExcel()
                                 file_name = 'DS_save_auto.xls'
                                 Export.Excel(msnv,hotennv,list_day,list_gio,file_name)
                             k = cv2.waitKey(30)
@@ -387,7 +381,7 @@ def FC_DangNhap():
                     Tim_ngay = str(Entry_dsdiemdanh.get())
                     global x
                     x = NgayTim.format_ngay(Tim_ngay)
-                    rows_ds = sql_DB.sql_ttdiemdanh_theoNgay(x)
+                    rows_ds = QuerySql.sql_ttdiemdanh_theoNgay(x)
                     tk_ds = Tk()
                     tk_ds.title("Danh sách điểm danh")
                     tk_ds.geometry("950x550")
@@ -440,7 +434,7 @@ def FC_DangNhap():
                             except:
                                 print('error exception')
                             tv.delete(row)
-                            sql_DB.del_ttdiemdanh(id_f,gio_d)
+                            QuerySql.del_ttdiemdanh(id_f,gio_d)
                             messagebox.showinfo("Thông báo", "Xóa thành công")
                         def btn_xemAnh_dd():
                             path2 = 'data_diemdanh_dung'
@@ -453,7 +447,7 @@ def FC_DangNhap():
                                         width=10, height=1, command=btn_xoa_dd)
                         btn_recog_dd.place(x=770, y=60)
                     def btn_thongke():
-                        arr_lb, arr_tt, arr_chuadd = sql_DB.sql_thongke(x)
+                        arr_lb, arr_tt, arr_chuadd = QuerySql.sql_thongke(x)
                         tk_tk = Tk()
                         tk_tk.title("Danh sách nhân viên chưa điểm danh")
                         tk_tk.geometry("600x550")
@@ -503,7 +497,7 @@ def FC_DangNhap():
                     tv.bind('<Button-1>', selectItem)
 
                 def btn_ddhomnay():
-                    rows_hn = sql_DB.sql_ttdiemdanh_curdate()
+                    rows_hn = QuerySql.sql_ttdiemdanh_curdate()
                     tk_hn = Tk()
                     tk_hn.title("Danh sách điểm danh hôm nay")
                     tk_hn.geometry("950x550")
@@ -556,7 +550,7 @@ def FC_DangNhap():
                             except:
                                 print('error exception')
                             tvhn.delete(row)
-                            sql_DB.del_ttdiemdanh(id_f,gio_d)
+                            QuerySql.del_ttdiemdanh(id_f,gio_d)
                             path2 = 'data_diemdanh_dung'
                             Delete_file(path2, int(dv[0])).delete()
                             messagebox.showinfo("Thông báo", "Xóa thành công")
@@ -571,7 +565,7 @@ def FC_DangNhap():
                                         width=10, height=1, command=btn_xoa_ddhn)
                         btn_recog_ddhn.place(x=770, y=60)
                     def btn_ExToExcel():
-                        msnv, hotennv, list_day, list_gio = sql_DB.ttdiemdanhToExcel()
+                        msnv, hotennv, list_day, list_gio = QuerySql.ttdiemdanhToExcel()
                         file_name = 'DShomNay.xls'
                         Export.Excel(msnv,hotennv,list_day,list_gio,file_name)
                         messagebox.showinfo("TB","Export đến file exel thành công")
@@ -599,7 +593,7 @@ def FC_DangNhap():
                             md = hashlib.md5()
                             md.update(new_pass.encode())
                             new_pass = md.hexdigest()
-                            sql_DB.update_Admin(new_username, new_pass)
+                            QuerySql.update_Admin(new_username, new_pass)
                             messagebox.showinfo("Thông báo", "Thay đổi thành công")
                             tk_doiPass.destroy()
 
@@ -630,7 +624,7 @@ def FC_DangNhap():
                     faces=detector.detectMultiScale(gray,1.3,5)
                     global ID, Name, Ngay,Gio
                     Ngay, Gio,start_dd_sang, end_dd_sang,start_dd_chieu,end_dd_chieu = Ngay_today.return_Ngay()                   
-                    info_tt = sql_DB.sql_ttdiemdanh_curdate()
+                    info_tt = QuerySql.sql_ttdiemdanh_curdate()
                     ids = []
                     for i in info_tt:
                         ids.append(i[0])
@@ -657,7 +651,7 @@ def FC_DangNhap():
                                             otherhash = imagehash.average_hash(Image.open(imagePath))
                                             c = hashs - otherhash
                                             if(c<22 and (ID_ss == int(profile[0]))):
-                                                sql_DB.insert_ttdiemdanh(profile[0],profile[1],Ngay,Gio)
+                                                QuerySql.insert_ttdiemdanh(profile[0],profile[1],Ngay,Gio)
                                                 cv2.imwrite("data_diemdanh_dung/"+str(profile[1])+'.'+str(profile[0]) +'.'+ str(image_dd) + ".jpg", img_cv)
                                                 messagebox.showinfo("Thông báo", "Điểm danh đúng rồi")
                                             else:
