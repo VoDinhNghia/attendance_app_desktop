@@ -13,7 +13,7 @@ class QuerySql:
         cursor = ConnectDb.connectMysql()[1]
         sql = 'select * from users'
         cursor.execute(sql)
-        return cursor.fetchall() 
+        return cursor.fetchone()
 
     @classmethod
     def updateAdmin(cls, username, password):
@@ -27,8 +27,8 @@ class QuerySql:
         connect, cursor = ConnectDb.connectMysql()
         cursor.execute('select * from label_face where ID=%s', id)
         connect.commit()
-        arr_check_id = cursor.fetchall()
-        return arr_check_id
+        results = cursor.fetchall() # fetch one
+        return results
 
     @staticmethod
     def fetchAllLabelface():
