@@ -19,7 +19,7 @@ from view_image import Xem_Image
 from excel import Export
 from date import SearchDate, CurrentDate
 from accuracy import Accuracy
-from get_camera import get_Camera
+from get_camera import Camera
 # if not yet tranning model then enter trainning model when start app => action
 
 root = Tk()
@@ -60,32 +60,32 @@ def loginApp():
         messagebox.showinfo('message','username or password incorrect')
     elif(resultQueryLogin[0] == username and resultQueryLogin[1] == password):
         speaker = win32com.client.Dispatch('SAPI.SpVoice')
-        speaker.Speak('Hello, wellcome you to app')
+        speaker.Speak('Hello, wellcome you to attendance app')
         root.destroy()
-        tk_cam = Tk()
-        tk_cam.geometry('650x150')
-        tk_cam.configure(bg='CornflowerBlue')
+        cameraOptionScreen = Tk()
+        cameraOptionScreen.geometry('730x150')
+        cameraOptionScreen.configure(bg = 'CornflowerBlue')
         
-        def btn_ChonCamera():
-            global cam_str, cap, latest_frame, lo, last_ret
-            cam_str = str(Entry_camera.get()) 
-            cap = get_Camera.getCam(cam_str)
-            latest_frame = None
-            last_ret = None
+        def optionCameraFunc():
+            global optionCamera, cap, latestFrame, lo, lastRet
+            optionCamera = str(inputOptionCamera.get()) 
+            cap = Camera.get(optionCamera)
+            latestFrame = None
+            lastRet = None
             lo = Lock()
             def rtsp_cam_buffer(cap):
-                global latest_frame, lo, last_ret
+                global latestFrame, lo, lastRet
                 while True:
                     with lo:
                         try:
-                            last_ret, latest_frame = cap.read()
+                            lastRet, latestFrame = cap.read()
                         except:
                             print('error exception')
             t1 = threading.Thread(target=rtsp_cam_buffer,args=(cap,),name='rtsp_read_thread')
             t1.daemon=True
             t1.start()
 
-            tk_cam.destroy()
+            cameraOptionScreen.destroy()
             tk_main = Tk()
             tk_main.geometry('1350x700')
             tk_main.resizable(False,False)
@@ -100,10 +100,10 @@ def loginApp():
             def show_face():
                 try:
                     global face
-                    if((cam_str.isnumeric and len(cam_str)==1) or len(cam_str)==0):
+                    if((optionCamera.isnumeric and len(optionCamera)==1) or len(optionCamera)==0):
                         _,face = cap.read()
                     else:
-                        face = latest_frame.copy()
+                        face = latestFrame.copy()
                     face= cv2.flip(face, 1)
                     image = cv2.cvtColor(face, cv2.COLOR_BGR2RGBA)
                     img = Image.fromarray(image)
@@ -116,7 +116,7 @@ def loginApp():
                     print('error exception')
             show_face()
             global recognizer
-            def trainningModel():
+            def trainningModelFunc():
                 Ids, faces = GetInfoImage.getImagesAndLabels(path)
                 recognizer.train(faces, np.array(Ids))
                 recognizer.save('trainning_result/trainning_model.yml')
@@ -138,8 +138,8 @@ def loginApp():
                             QuerySql.insertLabelface(id, name)
                             sampleNum = 0
                             while(True):
-                                if (last_ret is not None) and (latest_frame is not None):
-                                    img = latest_frame.copy()
+                                if (lastRet is not None) and (latestFrame is not None):
+                                    img = latestFrame.copy()
                                     gray = cv2.fastNlMeansDenoising(img,None,4,5,11)
                                     faces = detector.detectMultiScale(gray,1.3,5)
                                     if(len(faces)==1):
@@ -190,8 +190,8 @@ def loginApp():
                     else:
                         sampleNum = 0
                         while(True):
-                            if (last_ret is not None) and (latest_frame is not None):
-                                img = latest_frame.copy()
+                            if (lastRet is not None) and (latestFrame is not None):
+                                img = latestFrame.copy()
                                 img1 = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
                                 gray = cv2.fastNlMeansDenoising(img1,None,4,5,11)
                                 faces = detector.detectMultiScale(gray,1.3,5)
@@ -304,8 +304,8 @@ def loginApp():
                 global img
                 try:
                     while True:
-                        if((last_ret is not None) and (latest_frame is not None)):
-                            img = latest_frame.copy()                            
+                        if((lastRet is not None) and (latestFrame is not None)):
+                            img = latestFrame.copy()                            
                         else:
                             print('không lấy được video')
                             time_out.sleep(0.2)
@@ -611,7 +611,7 @@ def loginApp():
                 btn_newPass.place(x= 250, y= 90)
 
             def btn_ddhinhanh():
-                image1 = latest_frame.copy()
+                image1 = latestFrame.copy()
                 cv2.imwrite('anhchupnhandang.jpg', image1)
                 img_nd = ImageTk.PhotoImage(Image.open('anhchupnhandang.jpg').resize((620, 480),Image.ANTIALIAS))
                 panel = Label(tk_main, image = img_nd)
@@ -672,7 +672,7 @@ def loginApp():
                     lbl_showTT_Ms.configure(text = a)
                 except:
                     messagebox.showinfo('message', 'Vui lòng trainning trước!')
-            def calculateAccuracy():
+            def calculateAccuracyFunc():
                 pathFolderImageTest = 'image_test'
                 idLists, faceLists = GetInfoImage.getImagesAndLabels(pathFolderImageTest) 
                 resultPredict = []
@@ -692,11 +692,11 @@ def loginApp():
             btn_ddhomnay= Button(tk_main, text='Điểm danh hôm nay', font=(fontTypeApp, 14), fg='white', bg='green',
             width=18, height=1, command=btn_ddhomnay)
             btn_ddhomnay.place(x=250, y=500)
-            btnCalculateAccuracy= Button(tk_main, text='Calculate accuracy', font=(fontTypeApp, 14), fg='white', bg='green',
-                width=15, height=1, command=calculateAccuracy)
-            btnCalculateAccuracy.place(x=490, y=500)
-            btnTrainModel= Button(tk_main, text='Trainning data', font=(fontTypeApp, 14), fg='white', bg='green',
-                width=15, height=1, command=trainningModel)
+            btncalculateAccuracyFunc= Button(tk_main, text='Calculate accuracy', font = (fontTypeApp, 14), fg = 'white', bg = 'green',
+                width = 15, height=1, command = calculateAccuracyFunc)
+            btncalculateAccuracyFunc.place(x=490, y=500)
+            btnTrainModel= Button(tk_main, text='Trainning data', font = (fontTypeApp, 14), fg='white', bg='green',
+                width = 15, height = 1, command = trainningModelFunc)
             btnTrainModel.place(x=490, y=550)
             btn_doiPass= Button(tk_main, text='Đổi mật khẩu', font=(fontTypeApp, 14), fg='white', bg='green',
             width=18, height=1, command=btn_doiAdmin)
@@ -717,16 +717,16 @@ def loginApp():
             lbl_showTT_Ms = Label(tk_main, text='', font=(fontTypeApp, 16), fg='red')
             lbl_showTT_Ms.place(x=1050, y=550)
         
-        lbl_title = Label(tk_cam, text='Nhập path video or stream camera (0 or ' ' camera máy tính)', font=(fontTypeApp, 18), fg='green', bg='white')
-        lbl_title.place(x=30, y=10)                
-        btn_ChonCamera = Button(tk_cam, text='Chọn thiết bị video/stream', font=(fontTypeApp,14),fg='white', bg='green',
-                    width= 20, height=1, bd =2, command=btn_ChonCamera)  
-        btn_ChonCamera.place(x=10, y =60)
-        Entry_camera = Entry(tk_cam, width=40, bd=5,font=(fontTypeApp,14))
-        Entry_camera.place(x=250,y=60)
+        lableOptionCamera = Label(cameraOptionScreen, text = 'Enter path video or stream (to open camera computer enter 0 or empty)', font = (fontTypeApp, 18), fg = 'green', bg = 'white')
+        lableOptionCamera.place(x = 10, y = 10)                
+        buttonOptionCamera = Button(cameraOptionScreen, text = 'Option camera', font = (fontTypeApp,14),fg = 'white', bg = 'green',
+                    width = 15, height = 1, bd = 2, command = optionCameraFunc)  
+        buttonOptionCamera.place(x = 10, y = 60)
+        inputOptionCamera = Entry(cameraOptionScreen, width = 45, bd = 5, font = (fontTypeApp, 14))
+        inputOptionCamera.place(x = 210, y = 60)
                  
 lableTitle = Label(root, text='ATTENDANCE APP USE FACE RECOGNITION TECH (OPENCV)', font = (fontTypeApp, 20), fg = 'red')
-lableTitle.place(x = 10, y = 10)
+lableTitle.place(x = 40, y = 10)
 lableUsername = Label(root, text='username: ', width = 10, bd = 4, font = (fontTypeApp, 16), fg = 'green')
 lableUsername.place(x = 160, y = 200)
 inputUsername = Entry(root, width = 50, bd = 5, font = (fontTypeApp, 14))

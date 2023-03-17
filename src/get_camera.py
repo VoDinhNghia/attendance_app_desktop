@@ -1,13 +1,13 @@
 import cv2
-class get_Camera:
+class Camera:
     @classmethod
-    def getCam(cls, cam_str):
-        if(cam_str.isnumeric and len(cam_str)==1):
+    def get(cls, cameraOption):
+        if(cameraOption.isnumeric and len(cameraOption) == 1):
             cap = cv2.VideoCapture(0)
-        elif(len(cam_str)==0):
+        elif(len(cameraOption) == 0):
             cap = cv2.VideoCapture(0)
         else:
-            cap = cv2.VideoCapture(cam_str)
+            cap = cv2.VideoCapture(cameraOption)
         return cap
 
     
