@@ -3,121 +3,113 @@ import pymysql
 class ConnectDb:
     @staticmethod
     def connectMysql():
-        connect = pymysql.connect(host='localhost', user='root', passwd="root", db='attendance')
+        connect = pymysql.connect(host='localhost', user='root', passwd='root', db='attendance')
         cursor = connect.cursor()
         return connect, cursor
 
 class QuerySql:
     @staticmethod
     def login():
-        cur = ConnectDb.connectMysql()[1]
-        sql = "SELECT * from users"
-        cur.execute(sql)
-        return cur.fetchall() 
+        cursor = ConnectDb.connectMysql()[1]
+        sql = 'select * from users'
+        cursor.execute(sql)
+        return cursor.fetchall() 
 
     @classmethod
-    def update_Admin(cls, new_username, new_pass):
-        conn, cur = ConnectDb.connectMysql()
-        sql = "update users set username = %s, password = %s"
-        cur.execute(sql,(new_username,new_pass))
-        conn.commit()
+    def updateAdmin(cls, username, password):
+        connect, cursor = ConnectDb.connectMysql()
+        sql = 'update users set username = %s, password = %s'
+        cursor.execute(sql, (username, password))
+        connect.commit()
     
     @classmethod
-    def sql_Labelface(cls, Id):
-        conn,cur = ConnectDb.connectMysql()
-        cur.execute("select * from label_face where ID=%s", Id)
-        conn.commit()
-        arr_check_id = cur.fetchall()
+    def selectLabelfaceById(cls, id):
+        connect, cursor = ConnectDb.connectMysql()
+        cursor.execute('select * from label_face where ID=%s', id)
+        connect.commit()
+        arr_check_id = cursor.fetchall()
         return arr_check_id
 
     @staticmethod
-    def ds_sql_Labelface():
-        conn,cur = ConnectDb.connectMysql()
-        cur.execute("select * from label_face")
-        conn.commit()
-        rows = cur.fetchall()
+    def fetchAllLabelface():
+        connect, cursor = ConnectDb.connectMysql()
+        cursor.execute('select * from label_face')
+        connect.commit()
+        rows = cursor.fetchall()
         return rows
 
     @staticmethod
-    def sql_ttdiemdanh_curdate():
-        conn,cur = ConnectDb.connectMysql()
-        query_tt = "select * from history_attendance where date= curdate()"
-        cur.execute(query_tt)
-        conn.commit()
-        info_tt = cur.fetchall()
-        return info_tt
+    def fetchHistoryAttendanceByCurrentDate():
+        connect, cursor = ConnectDb.connectMysql()
+        query = 'select * from history_attendance where date= curdate()'
+        cursor.execute(query)
+        connect.commit()
+        results = cursor.fetchall()
+        return results
 
     @classmethod
-    def insert_ttdiemdanh(cls, msnv, hoten, ngay, gio):
-        conn,cur = ConnectDb.connectMysql()
-        sql_tt = "INSERT INTO history_attendance(ID,name,date,time) Values(%s,%s,%s,%s)"
-        cur.execute(sql_tt,(msnv,hoten,ngay,gio))
-        conn.commit()
+    def insertHistoryAttendance(cls, numberId, name, date, time):
+        connect, cursor = ConnectDb.connectMysql()
+        insertHistory = 'insert into history_attendance(ID,name,date,time) Values(%s,%s,%s,%s)'
+        cursor.execute(insertHistory, (numberId, name, date, time))
+        connect.commit()
     
     @classmethod
-    def insert_labelface(cls, Id, Name):
-        conn, cur = ConnectDb.connectMysql()
-        cmd="INSERT INTO label_face(ID,name) Values(%s,%s)"
-        Id = str(Id)
-        Name = str(Name)
-        cur.execute(cmd,(Id,Name))
-        conn.commit()
+    def insertLabelface(cls, id, name):
+        connect, cursor = ConnectDb.connectMysql()
+        insertLableFace = 'insert into label_face(ID,name) Values(%s,%s)'
+        cursor.execute(insertLableFace, (str(id), str(name)))
+        connect.commit()
 
     @staticmethod
-    def ttdiemdanhToExcel():
-        conn,cur = ConnectDb.connectMysql()
-        cur.execute("select * from history_attendance where date = curdate()")
-        conn.commit()
-        rows_auto= cur.fetchall()
-        msnv = []
-        hotennv = []
-        list_day = []
-        list_gio = []
-        for i in rows_auto:
-            msnv.append(i[0])
-            hotennv.append(i[1])
-            list_day.append(str(i[2]))
-            list_gio.append(str(i[3]))
+    def exportHistoryAttendance():
+        connect, cursor = ConnectDb.connectMysql()
+        cursor.execute('select * from history_attendance where date = curdate()')
+        connect.commit()
+        allHistory = cursor.fetchall()
+        numberIds = []
+        names = []
+        dateList = []
+        timeList = []
+        for i in allHistory:
+            numberIds.append(i[0])
+            names.append(i[1])
+            dateList.append(str(i[2]))
+            timeList.append(str(i[3]))
         
-        return msnv, hotennv, list_day, list_gio
+        return numberIds, names, dateList, timeList
 
     @classmethod
-    def sql_ttdiemdanh_theoNgay(cls, x):
-        conn, cur = ConnectDb.connectMysql()
-        sql = "select * from history_attendance where date = %s"
-        cur.execute(sql, str(x))
-        conn.commit()
-        rows_ds = cur.fetchall()
-        return rows_ds
+    def queryHistoryByDate(cls, date):
+        connect, cursor = ConnectDb.connectMysql()
+        queryHistory = 'select * from history_attendance where date = %s'
+        cursor.execute(queryHistory, str(date))
+        connect.commit()
+        resultHistory = cursor.fetchall()
+        return resultHistory
 
     @classmethod
-    def sql_thongke(cls, x):
-        conn, cur = ConnectDb.connectMysql()
-        sql_lb = "SELECT * FROM label_face"
-        cur.execute(sql_lb)
-        arr_lb = cur.fetchall()
-        sql_tk = "SELECT ID, Name FROM history_attendance WHERE date= %s"
-        cur.execute(sql_tk,str(x))
-        conn.commit()
-        arr_tt = cur.fetchall()
-        arr_chuadd = []
-        for i in range(len(arr_lb)):
-            for j in arr_tt:
-                if(j[0] != arr_lb[i][0]):
-                    arr_chuadd.append(arr_lb[i])
+    def statictisHistoryByDate(cls, date):
+        lableLists = cls.fetchAllLabelface()
+        attendanceList = cls.queryHistoryByDate(date)
+        notYetAttendance = []
+        for i in range(len(lableLists)):
+            for j in attendanceList:
+                if(j[0] != lableLists[i][0]):
+                    notYetAttendance.append(lableLists[i])
                     break
-        return arr_lb, arr_tt, arr_chuadd
+        return lableLists, attendanceList, notYetAttendance
 
     @classmethod
-    def del_ttdiemdanh(cls, msnv, gio):
-        conn, cur = ConnectDb.connectMysql()
-        sql_del = "DELETE FROM history_attendance WHERE ID = %s AND time = %s"
-        cur.execute(sql_del,(str(msnv),str(gio)))
-        conn.commit()
+    def deleteHistoryAttendance(cls, numberId, time):
+        connect, cursor = ConnectDb.connectMysql()
+        deleteHistory = 'delete from history_attendance where ID = %s AND time = %s'
+        cursor.execute(deleteHistory, (str(numberId),str(time)))
+        connect.commit()
 
     @classmethod
-    def del_labelface(cls, Id):
-        conn, cur = ConnectDb.connectMysql()
-        sql_del = "DELETE FROM label_face WHERE ID = %s"
-        cur.execute(sql_del,str(Id))
-        conn.commit()
+    def deleteLabelface(cls, id):
+        connect, cursor = ConnectDb.connectMysql()
+        deleteLable = 'delete from label_face where ID = %s'
+        cursor.execute(deleteLable, str(id))
+        connect.commit()

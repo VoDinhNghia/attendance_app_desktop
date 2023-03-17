@@ -133,9 +133,9 @@ def FC_DangNhap():
                         if(len(id)==0 or len(name)==0):
                             messagebox.showinfo("Thông báo", "Vui lòng nhập thông tin vào")
                         elif id.isdecimal:
-                            arr_check_id = QuerySql.sql_Labelface(id)
+                            arr_check_id = QuerySql.selectLabelfaceById(id)
                             if(len(arr_check_id)==0):
-                                QuerySql.insert_labelface(id,name)
+                                QuerySql.insertLabelface(id, name)
                                 sampleNum = 0
                                 while(True):
                                     if (last_ret is not None) and (latest_frame is not None):
@@ -159,7 +159,7 @@ def FC_DangNhap():
                                             # speaker = win32com.client.Dispatch("SAPI.SpVoice")
                                             # speaker.Speak("Detected two face in frame, please restarted")
                                             messagebox.showinfo('Thông báo',"Tìm thấy 2 gương mặt trong cùng frame")
-                                            QuerySql.del_labelface(id)
+                                            QuerySql.deleteLabelface(id)
                                             path = 'image_trainning_model'
                                             Delete_file(path,id).delete()
                                             path_ss = 'image_compare'
@@ -238,7 +238,7 @@ def FC_DangNhap():
                     btn_them_data_test.place(x= 300, y=90)
                 #space+tab => lùi vào 1 space còn shift+tab ngược lại
                 def btn_danhsachNguoi():
-                    rows = QuerySql.ds_sql_Labelface()
+                    rows = QuerySql.fetchAllLabelface()
                     tk_ds = Tk()
                     tk_ds.title("Danh sách nhân viên")
                     tk_ds.geometry("550x550")
@@ -281,7 +281,7 @@ def FC_DangNhap():
                                 tv.delete(row)
                             except:
                                 print('error exception')
-                            QuerySql.del_labelface(id_f)
+                            QuerySql.deleteLabelface(id_f)
                             Delete_file(path, id_f).delete()
                             path_xoaNV = 'image_compare'
                             Delete_file(path_xoaNV, id_f).delete()                                   
@@ -315,7 +315,7 @@ def FC_DangNhap():
                             faces=detector.detectMultiScale(gray,1.3,5)
                             Ngay, Gio,start_dd_sang, end_dd_sang,start_dd_chieu,end_dd_chieu = Ngay_today.return_Ngay()
                             gio_to_excel,gio_end_to_excel = Ngay_today.gioToExcel()
-                            info_tt = QuerySql.sql_ttdiemdanh_curdate()
+                            info_tt = QuerySql.fetchHistoryAttendanceByCurrentDate()
                             ids = []
                             for i in info_tt:
                                 ids.append(i[0])
@@ -367,7 +367,7 @@ def FC_DangNhap():
                                 img = cv2.resize(img, (780,480))
                                 cv2.imshow('Frame',img) 
                             if(Gio>gio_to_excel and Gio<gio_end_to_excel):
-                                msnv, hotennv, list_day, list_gio = QuerySql.ttdiemdanhToExcel()
+                                msnv, hotennv, list_day, list_gio = QuerySql.exportHistoryAttendance()
                                 file_name = 'result_attendance.xls'
                                 Export.Excel(msnv,hotennv,list_day,list_gio,file_name)
                             k = cv2.waitKey(30)
@@ -381,7 +381,7 @@ def FC_DangNhap():
                     Tim_ngay = str(Entry_dsdiemdanh.get())
                     global x
                     x = NgayTim.format_ngay(Tim_ngay)
-                    rows_ds = QuerySql.sql_ttdiemdanh_theoNgay(x)
+                    rows_ds = QuerySql.queryHistoryByDate(x)
                     tk_ds = Tk()
                     tk_ds.title("Danh sách điểm danh")
                     tk_ds.geometry("950x550")
@@ -434,7 +434,7 @@ def FC_DangNhap():
                             except:
                                 print('error exception')
                             tv.delete(row)
-                            QuerySql.del_ttdiemdanh(id_f,gio_d)
+                            QuerySql.deleteHistoryAttendance(id_f,gio_d)
                             messagebox.showinfo("Thông báo", "Xóa thành công")
                         def btn_xemAnh_dd():
                             path2 = 'image_correct'
@@ -447,7 +447,7 @@ def FC_DangNhap():
                                         width=10, height=1, command=btn_xoa_dd)
                         btn_recog_dd.place(x=770, y=60)
                     def btn_thongke():
-                        arr_lb, arr_tt, arr_chuadd = QuerySql.sql_thongke(x)
+                        arr_lb, arr_tt, arr_chuadd = QuerySql.statictisHistoryByDate(x)
                         tk_tk = Tk()
                         tk_tk.title("Danh sách nhân viên chưa điểm danh")
                         tk_tk.geometry("600x550")
@@ -497,7 +497,7 @@ def FC_DangNhap():
                     tv.bind('<Button-1>', selectItem)
 
                 def btn_ddhomnay():
-                    rows_hn = QuerySql.sql_ttdiemdanh_curdate()
+                    rows_hn = QuerySql.fetchHistoryAttendanceByCurrentDate()
                     tk_hn = Tk()
                     tk_hn.title("Danh sách điểm danh hôm nay")
                     tk_hn.geometry("950x550")
@@ -550,7 +550,7 @@ def FC_DangNhap():
                             except:
                                 print('error exception')
                             tvhn.delete(row)
-                            QuerySql.del_ttdiemdanh(id_f,gio_d)
+                            QuerySql.deleteHistoryAttendance(id_f,gio_d)
                             path2 = 'image_correct'
                             Delete_file(path2, int(dv[0])).delete()
                             messagebox.showinfo("Thông báo", "Xóa thành công")
@@ -565,7 +565,7 @@ def FC_DangNhap():
                                         width=10, height=1, command=btn_xoa_ddhn)
                         btn_recog_ddhn.place(x=770, y=60)
                     def btn_ExToExcel():
-                        msnv, hotennv, list_day, list_gio = QuerySql.ttdiemdanhToExcel()
+                        msnv, hotennv, list_day, list_gio = QuerySql.exportHistoryAttendance()
                         file_name = 'attendance_today.xls'
                         Export.Excel(msnv,hotennv,list_day,list_gio,file_name)
                         messagebox.showinfo("TB","Export đến file exel thành công")
@@ -593,7 +593,7 @@ def FC_DangNhap():
                             md = hashlib.md5()
                             md.update(new_pass.encode())
                             new_pass = md.hexdigest()
-                            QuerySql.update_Admin(new_username, new_pass)
+                            QuerySql.updateAdmin(new_username, new_pass)
                             messagebox.showinfo("Thông báo", "Thay đổi thành công")
                             tk_doiPass.destroy()
 
@@ -624,7 +624,7 @@ def FC_DangNhap():
                     faces=detector.detectMultiScale(gray,1.3,5)
                     global ID, Name, Ngay,Gio
                     Ngay, Gio,start_dd_sang, end_dd_sang,start_dd_chieu,end_dd_chieu = Ngay_today.return_Ngay()                   
-                    info_tt = QuerySql.sql_ttdiemdanh_curdate()
+                    info_tt = QuerySql.fetchHistoryAttendanceByCurrentDate()
                     ids = []
                     for i in info_tt:
                         ids.append(i[0])
