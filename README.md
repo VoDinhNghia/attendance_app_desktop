@@ -31,5 +31,5 @@ $ pip install opencv-python
 
 ### Run App
 ```
-cd folder attendance => python app_main_gui.py
+cd folder src => python start_gui_app.py
 ```

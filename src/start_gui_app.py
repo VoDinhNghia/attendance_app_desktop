@@ -12,14 +12,14 @@ import hashlib
 import threading 
 from threading import Lock
 import time as time_out
-from class_conn_db import QuerySql
-from class_db_image import get_DB_image
-from class_delete_file import Delete_file
-from class_view_image import Xem_Image
-from class_excel import Export
-from class_date import NgayTim, Ngay_today
-from class_accuracy import Accuracy
-from class_get_camera import get_Camera
+from connect_db import QuerySql
+from db_image import get_DB_image
+from delete_file import Delete_file
+from view_image import Xem_Image
+from excel import Export
+from date import NgayTim, Ngay_today
+from accuracy import Accuracy
+from get_camera import get_Camera
 
 root = Tk()
 root.title('Ứng dụng điểm danh')

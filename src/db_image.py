@@ -1,4 +1,4 @@
-from class_conn_db import ConnectDb
+from connect_db import ConnectDb
 import os
 from PIL import Image
 import numpy as np 
