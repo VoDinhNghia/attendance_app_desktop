@@ -22,11 +22,7 @@ $ pip install opencv-python
 
 ### Database
 ```
-- name: attendance
-- table:
-+ users (username, password)
-+ label_face (ID, name)
-+ history_attendance (ID, name, date, time)
+- open file attendance.sql
 ```
 
 ### Run App
