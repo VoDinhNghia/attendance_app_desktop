@@ -47,7 +47,7 @@ class Ngay_today:
         Gio = time1.time()
         start_dd_sang = time(hour = 8, minute = 1, second = 1)
         end_dd_sang = time(hour = 8, minute = 45, second = 56)
-        start_dd_chieu = time(hour = 5, minute = 25, second = 56)
+        start_dd_chieu = time(hour = 4, minute = 25, second = 56)
         end_dd_chieu= time(hour = 5, minute = 50, second = 56)
         return Ngay, Gio, start_dd_sang, end_dd_sang, start_dd_chieu, end_dd_chieu
 

@@ -23,10 +23,10 @@ from get_camera import get_Camera
 
 root = Tk()
 root.title('Ứng dụng điểm danh')
-root.iconbitmap('icon.jpg')
+root.iconbitmap('image_background_app/icon.jpg')
 root.geometry("890x500")
 root.resizable(False,False)
-img1=ImageTk.PhotoImage(Image.open('nen1.jpg'))
+img1=ImageTk.PhotoImage(Image.open('image_background_app/login.jpg'))
 panel = Label(root, image = img1)
 panel.image = img1
 panel.place(x = 0, y = 0)
@@ -38,7 +38,7 @@ fontface = cv2.FONT_HERSHEY_SIMPLEX
 fontscale = 1
 fontcolor = (250,0,0)
 recognizer = cv2.face.LBPHFaceRecognizer_create()
-path = 'anh_data_hinh'
+path = 'image_trainning_model'
 md5 = hashlib.md5()
 password = 'Nghia123'
 md5.update(password.encode())
@@ -89,7 +89,7 @@ def FC_DangNhap():
                 tk_main = Tk()
                 tk_main.geometry("1350x700")
                 tk_main.resizable(False,False)
-                background_main=ImageTk.PhotoImage(Image.open('nen.jpg'))
+                background_main=ImageTk.PhotoImage(Image.open('image_background_app/background.jpg'))
                 panel = Label(tk_main, image = background_main)
                 panel.image = background_main
                 panel.place(x = 0, y = 0)
@@ -119,8 +119,8 @@ def FC_DangNhap():
                 def btn_train_data():
                     Ids,faces = get_DB_image.getImagesAndLabels(path)
                     recognizer.train(faces,np.array(Ids))
-                    recognizer.save('reco_anh/trainningData.yml')
-                    messagebox.showinfo("Thông báo", "Đã hoàn thành việc trainning data")
+                    recognizer.save('trainning_result/trainning_model.yml')
+                    messagebox.showinfo("Thông báo", "Đã hoàn thành việc trainning model")
 
                 def btn_themNguoiMoi():                  
                     tk_themNguoi = Tk()
@@ -145,8 +145,8 @@ def FC_DangNhap():
                                         if(len(faces)==1):
                                             for (x,y,w,h) in faces:
                                                 sampleNum=sampleNum+1
-                                                cv2.imwrite("anh_data_hinh/User."+ id +'.'+ str(sampleNum) + ".jpg", gray[y:y+h,x:x+w])
-                                                cv2.imwrite("data_sosanh/User."+ id +'.'+".jpg", gray[y:y+h,x:x+w])
+                                                cv2.imwrite("image_trainning_model/User."+ id +'.'+ str(sampleNum) + ".jpg", gray[y:y+h,x:x+w])
+                                                cv2.imwrite("image_compare/User."+ id +'.'+".jpg", gray[y:y+h,x:x+w])
                                             if(sampleNum>49):
                                                 speaker = win32com.client.Dispatch("SAPI.SpVoice")
                                                 speaker.Speak("Save success please check")
@@ -160,9 +160,9 @@ def FC_DangNhap():
                                             # speaker.Speak("Detected two face in frame, please restarted")
                                             messagebox.showinfo('Thông báo',"Tìm thấy 2 gương mặt trong cùng frame")
                                             QuerySql.del_labelface(id)
-                                            path = 'anh_data_hinh'
+                                            path = 'image_trainning_model'
                                             Delete_file(path,id).delete()
-                                            path_ss = 'data_sosanh'
+                                            path_ss = 'image_compare'
                                             Delete_file(path_ss,id).delete()
                                             break
                                             #detroy frame thêm người mới
@@ -198,7 +198,7 @@ def FC_DangNhap():
                                     if(len(faces)==1):
                                         for (x,y,w,h) in faces:
                                             sampleNum=sampleNum+1
-                                            cv2.imwrite("data_test1/"+name +"."+ id_test +'.'+ str(sampleNum) + ".jpg", gray[y:y+h,x:x+w])
+                                            cv2.imwrite("image_test/"+name +"."+ id_test +'.'+ str(sampleNum) + ".jpg", gray[y:y+h,x:x+w])
                                         if(sampleNum>99):
                                             messagebox.showinfo("Thông báo", "Đã thêm vào tập test thành công")
                                             break
@@ -207,7 +207,7 @@ def FC_DangNhap():
                                         continue
                                     else: 
                                         messagebox.showinfo('Thông báo', "Tìm thấy 2 khuôn mặt trong frame")
-                                        path = 'data_test1'
+                                        path = 'image_test'
                                         Delete_file(path,id_test).delete()
                                         break
                                         #detroy frame thêm người mới
@@ -283,11 +283,11 @@ def FC_DangNhap():
                                 print('error exception')
                             QuerySql.del_labelface(id_f)
                             Delete_file(path, id_f).delete()
-                            path_xoaNV = 'data_sosanh'
+                            path_xoaNV = 'image_compare'
                             Delete_file(path_xoaNV, id_f).delete()                                   
                             messagebox.showinfo("Thông báo", "Xóa thành công")
                         def btn_xemAnh():
-                            path1 = 'data_sosanh'
+                            path1 = 'image_compare'
                             Xem_Image(path1, int(dv[0])).Xem()
                         btn_xemAnh= Button(tk_ds, text="Xem ảnh", font=("Times New Roman", 14), fg="white", bg="green",
                                         width=10, height=1, command=btn_xemAnh)
@@ -339,12 +339,12 @@ def FC_DangNhap():
                                             print("Danh sách ID đã điểm danh: ",ids)
                                             image_dd=image_dd+1        
                                             img_cv = cv2.cvtColor(gray[y:y+h,x:x+w], cv2.COLOR_GRAY2RGB)
-                                            cv2.imwrite("data_hinh_diemdanh/"+str(profile[1])+'.'+str(profile[0]) +'.'+ str(image_dd) + ".jpg", img_cv)
-                                            path2 = 'data_sosanh'
+                                            cv2.imwrite("image_attendance/"+str(profile[1])+'.'+str(profile[0]) +'.'+ str(image_dd) + ".jpg", img_cv)
+                                            path2 = 'image_compare'
                                             imagePaths=[os.path.join(path2,f) for f in os.listdir(path2)] 
                                             for imagePath in imagePaths:
                                                 ID_ss=int(os.path.split(imagePath)[-1].split('.')[1])
-                                                hashs = imagehash.average_hash(Image.open("data_hinh_diemdanh/"+str(profile[1])+'.'+str(profile[0])+'.'+str(image_dd)+".jpg"))
+                                                hashs = imagehash.average_hash(Image.open("image_attendance/"+str(profile[1])+'.'+str(profile[0])+'.'+str(image_dd)+".jpg"))
                                                 otherhash = imagehash.average_hash(Image.open(imagePath))
                                                 c = hashs - otherhash
                                                 print("gia tri so sánh 2 bức ảnh: ",c)
@@ -352,23 +352,23 @@ def FC_DangNhap():
                                                     print("Điểm danh đúng rồi")
                                                     QuerySql.insert_ttdiemdanh(profile[0],profile[1],Ngay,Gio)
                                                     #Xóa ảnh cũ cùng ID để thêm ảnh mới vào
-                                                    path2 = 'data_diemdanh_dung'
+                                                    path2 = 'image_correct'
                                                     Delete_file(path2, int(profile[0])).delete()
-                                                    cv2.imwrite("data_diemdanh_dung/"+str(profile[1])+'.'+str(profile[0]) +'.'+ str(image_dd) + ".jpg", img_cv)
+                                                    cv2.imwrite("image_correct/"+str(profile[1])+'.'+str(profile[0]) +'.'+ str(image_dd) + ".jpg", img_cv)
                                                 elif(c > 24 and ID_ss!=int(profile[0])):
                                                     print("Điểm danh sai rồi: ", profile[1])
-                                                    cv2.imwrite("data_diemdanh_sai/"+str(profile[1])+'.'+str(profile[0]) +'.'+ str(image_dd) + ".jpg", img_cv)
+                                                    cv2.imwrite("image_incorrect/"+str(profile[1])+'.'+str(profile[0]) +'.'+ str(image_dd) + ".jpg", img_cv)
                                     # else:
                                     #     messagebox.showinfo('Thông báo', "Không nằm trong khung giờ điểm danh")
                                 else: 
                                     img_unknow = img_unknow+1
                                     cv2.putText(img, "Name: "+ str(Id),(x-30,y-20), fontface, fontscale, fontcolor ,2)
-                                    cv2.imwrite("data_hinh_unknown/"+str(Id)+'.' + str(img_unknow) + ".jpg", img)
+                                    cv2.imwrite("image_unknown/"+str(Id)+'.' + str(img_unknow) + ".jpg", img)
                                 img = cv2.resize(img, (780,480))
                                 cv2.imshow('Frame',img) 
                             if(Gio>gio_to_excel and Gio<gio_end_to_excel):
                                 msnv, hotennv, list_day, list_gio = QuerySql.ttdiemdanhToExcel()
-                                file_name = 'DS_save_auto.xls'
+                                file_name = 'result_attendance.xls'
                                 Export.Excel(msnv,hotennv,list_day,list_gio,file_name)
                             k = cv2.waitKey(30)
                             if k == 27:
@@ -437,7 +437,7 @@ def FC_DangNhap():
                             QuerySql.del_ttdiemdanh(id_f,gio_d)
                             messagebox.showinfo("Thông báo", "Xóa thành công")
                         def btn_xemAnh_dd():
-                            path2 = 'data_diemdanh_dung'
+                            path2 = 'image_correct'
                             Xem_Image(path2,int(dv[0])).Xem()
 
                         btn_xemAnh_dd= Button(tk_ds, text="Xem ảnh", font=("Times New Roman", 14), fg="white", bg="green",
@@ -551,11 +551,11 @@ def FC_DangNhap():
                                 print('error exception')
                             tvhn.delete(row)
                             QuerySql.del_ttdiemdanh(id_f,gio_d)
-                            path2 = 'data_diemdanh_dung'
+                            path2 = 'image_correct'
                             Delete_file(path2, int(dv[0])).delete()
                             messagebox.showinfo("Thông báo", "Xóa thành công")
                         def btn_xemAnh_ddhn():
-                            path2 = 'data_diemdanh_dung'
+                            path2 = 'image_correct'
                             Xem_Image(path2, int(dv[0])).Xem()
 
                         btn_xemAnh_ddhn= Button(tk_hn, text="Xem ảnh", font=("Times New Roman", 14), fg="white", bg="green",
@@ -566,7 +566,7 @@ def FC_DangNhap():
                         btn_recog_ddhn.place(x=770, y=60)
                     def btn_ExToExcel():
                         msnv, hotennv, list_day, list_gio = QuerySql.ttdiemdanhToExcel()
-                        file_name = 'DShomNay.xls'
+                        file_name = 'attendance_today.xls'
                         Export.Excel(msnv,hotennv,list_day,list_gio,file_name)
                         messagebox.showinfo("TB","Export đến file exel thành công")
 
@@ -642,17 +642,17 @@ def FC_DangNhap():
                                     if(dem < 1):
                                         image_dd=image_dd+1
                                         img_cv = cv2.cvtColor(gray[y:y+h,x:x+w], cv2.COLOR_GRAY2RGB)
-                                        cv2.imwrite("data_hinh_diemdanh/anhchup"+'.'+str(profile[0]) +'.'+ str(image_dd) + ".jpg", img_cv)
-                                        path2 = 'data_sosanh'
+                                        cv2.imwrite("image_attendance/anhchup"+'.'+str(profile[0]) +'.'+ str(image_dd) + ".jpg", img_cv)
+                                        path2 = 'image_compare'
                                         imagePaths=[os.path.join(path2,f) for f in os.listdir(path2)] 
                                         for imagePath in imagePaths:
                                             ID_ss=int(os.path.split(imagePath)[-1].split('.')[1])
-                                            hashs = imagehash.average_hash(Image.open("data_hinh_diemdanh/anhchup"+'.'+str(profile[0])+'.'+str(image_dd)+".jpg"))
+                                            hashs = imagehash.average_hash(Image.open("image_attendance/anhchup"+'.'+str(profile[0])+'.'+str(image_dd)+".jpg"))
                                             otherhash = imagehash.average_hash(Image.open(imagePath))
                                             c = hashs - otherhash
                                             if(c<22 and (ID_ss == int(profile[0]))):
                                                 QuerySql.insert_ttdiemdanh(profile[0],profile[1],Ngay,Gio)
-                                                cv2.imwrite("data_diemdanh_dung/"+str(profile[1])+'.'+str(profile[0]) +'.'+ str(image_dd) + ".jpg", img_cv)
+                                                cv2.imwrite("image_correct/"+str(profile[1])+'.'+str(profile[0]) +'.'+ str(image_dd) + ".jpg", img_cv)
                                                 messagebox.showinfo("Thông báo", "Điểm danh đúng rồi")
                                             else:
                                                 messagebox.showinfo("Thông báo", "Điểm danh sai")
@@ -673,7 +673,7 @@ def FC_DangNhap():
                     except:
                         messagebox.showinfo("Thông báo", "Vui lòng trainning trước!")
                 def btn_test_acc():
-                    path_test = 'data_test1'
+                    path_test = 'image_test'
                     id_test, faces = get_DB_image.getImagesAndLabels(path_test)  
                     arr_pre_test = []
                     for img in faces:

@@ -33,3 +33,8 @@ $ pip install opencv-python
 ```
 cd folder src => python start_gui_app.py
 ```
+
+### Exit realtime attendance
+```
+enter key esc
+```
