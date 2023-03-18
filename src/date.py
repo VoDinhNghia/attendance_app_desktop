@@ -22,8 +22,8 @@ class CurrentDate:
         currentTime = current.time()
         startMorning = time(hour = 7, minute = 30, second = 1)
         endMorning = time(hour = 10, minute = 45, second = 56)
-        startAfternoon = time(hour = 4, minute = 25, second = 56)
-        endAfternoon = time(hour = 5, minute = 50, second = 56)
+        startAfternoon = time(hour = 13, minute = 25, second = 56)
+        endAfternoon = time(hour = 17, minute = 50, second = 56)
         return today, currentTime, startMorning, endMorning, startAfternoon, endAfternoon
 
     @staticmethod
