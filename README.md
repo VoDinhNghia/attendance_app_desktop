@@ -34,3 +34,8 @@ cd folder src => python start_gui_app.py
 ```
 enter key esc
 ```
+
+### View file excel or readme in vscode
+```
+extension: Office Viewer(Markdown Editor)
+```
