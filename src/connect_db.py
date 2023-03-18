@@ -27,7 +27,7 @@ class QuerySql:
         connect, cursor = ConnectDb.connectMysql()
         cursor.execute('select * from label_face where ID=%s', id)
         connect.commit()
-        results = cursor.fetchall() # fetch one
+        results = cursor.fetchone() # fetch one
         return results
 
     @staticmethod
