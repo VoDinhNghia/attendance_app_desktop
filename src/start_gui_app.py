@@ -298,85 +298,80 @@ def loginApp():
                 
                 tv.bind('<Button-1>', selectItem)
             
-            def btn_diemdanhrealtime():
-                image_dd = 0
-                img_unknow = 0
-                global img
+            def attendanceRealtimeFunc():
+                numberPathAttendance = 0
+                numberPathUnknown = 0
+                global imgRealtime
                 try:
                     while True:
                         if((lastRet is not None) and (latestFrame is not None)):
-                            img = latestFrame.copy()                            
+                            imgRealtime = latestFrame.copy()                            
                         else:
-                            print('không lấy được video')
+                            print('Not take of video')
                             time_out.sleep(0.2)
                             continue
-                        gray=cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-                        gray = cv2.fastNlMeansDenoising(gray,None,4,5,11)
-                        faces=detector.detectMultiScale(gray,1.3,5)
-                        Ngay, Gio,start_dd_sang, end_dd_sang,start_dd_chieu,end_dd_chieu = CurrentDate.dateHourTimeAttendance()
-                        gio_to_excel,gio_end_to_excel = CurrentDate.setupHourAutoExport()
-                        info_tt = QuerySql.fetchHistoryAttendanceByCurrentDate()
-                        ids = []
-                        for i in info_tt:
-                            ids.append(i[0])
-                        for(x,y,w,h) in faces:
-                            cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,255),1)
-                            id,conf=recognizer.predict(gray[y:y+h,x:x+w])
-                            print('He so confident: ',round(conf,2))
+                        grayImageRealtime = cv2.cvtColor(imgRealtime, cv2.COLOR_BGR2GRAY)
+                        grayImageRealtime = cv2.fastNlMeansDenoising(grayImageRealtime, None, 4, 5, 11)
+                        faces = detector.detectMultiScale(grayImageRealtime, 1.3, 5)
+                        today, currentTime, startMorning, endMorning, startAfternoon, endAfternoon = CurrentDate.dateHourTimeAttendance()
+                        startExport, endExport = CurrentDate.setupHourAutoExport()
+                        fetchInfoAttendance = QuerySql.fetchHistoryAttendanceByCurrentDate()
+                        idListAttendance = []
+                        for i in fetchInfoAttendance:
+                            idListAttendance.append(i[0])
+                        for(x, y, w, h) in faces:
+                            cv2.rectangle(imgRealtime, (x,y), (x+w,y+h), (0,255,255), 1)
+                            id, conf = recognizer.predict(grayImageRealtime[y:y+h,x:x+w])
                             profile = GetInfoImage.getProfile(id)
-                            Id='Uknown'
-                            conf = round(100*(1-(conf/300)),2)
-                            print('Độ chính xác (%): ',conf)
-                            if(conf > 70):     
-                                cv2.putText(img, str(conf) + '% : ' + str(profile[1]), (x+10,y-20), fontface, fontscale, fontcolor ,2)  
-                                dem = 0
-                                if((Gio > start_dd_sang and Gio < end_dd_sang) or (Gio > start_dd_chieu and Gio < end_dd_chieu)):
-                                    print('profile ID: ',profile[0])
-                                    for n in ids:
+                            idPredict = 'Uknown'
+                            conf = round(100 * (1 - (conf / 300)), 2)
+                            if(conf > 70):
+                                cv2.putText(imgRealtime, str(conf) + '% : ' + str(profile[1]), (x+10,y-20), fontface, fontscale, fontcolor ,2)  
+                                countAttendance = 0
+                                if((currentTime > startMorning and currentTime < endMorning) or (currentTime > startAfternoon and currentTime < endAfternoon)):
+                                    print('profile ID: ', profile[0])
+                                    for n in idListAttendance:
                                         if(int(n) == int(profile[0])):
-                                            dem=dem+1
-                                    if(dem < 1):
-                                        print('Danh sách ID đã điểm danh: ',ids)
-                                        image_dd=image_dd+1        
-                                        img_cv = cv2.cvtColor(gray[y:y+h,x:x+w], cv2.COLOR_GRAY2RGB)
-                                        cv2.imwrite('image_attendance/'+str(profile[1])+'.'+str(profile[0]) +'.'+ str(image_dd) + '.jpg', img_cv)
-                                        path2 = 'image_compare'
-                                        imagePaths=[os.path.join(path2,f) for f in os.listdir(path2)] 
+                                            countAttendance += 1
+                                    if(countAttendance < 1):
+                                        print('list ids attendance already: ', idListAttendance)
+                                        numberPathAttendance += 1        
+                                        grayConvertRgb = cv2.cvtColor(grayImageRealtime[y:y+h,x:x+w], cv2.COLOR_GRAY2RGB)
+                                        cv2.imwrite('image_attendance/'+str(profile[1])+'.'+str(profile[0]) +'.'+ str(numberPathAttendance) + '.jpg', grayConvertRgb)
+                                        pathCompareImgRealtime = 'image_compare'
+                                        imagePaths = [os.path.join(pathCompareImgRealtime, f) for f in os.listdir(pathCompareImgRealtime)] 
                                         for imagePath in imagePaths:
-                                            ID_ss=int(os.path.split(imagePath)[-1].split('.')[1])
-                                            hashs = imagehash.average_hash(Image.open('image_attendance/'+str(profile[1])+'.'+str(profile[0])+'.'+str(image_dd)+'.jpg'))
+                                            getIdsFromPathFolder = int(os.path.split(imagePath)[-1].split('.')[1])
+                                            hashs = imagehash.average_hash(Image.open('image_attendance/'+str(profile[1])+'.'+str(profile[0])+'.'+str(numberPathAttendance)+'.jpg'))
                                             otherhash = imagehash.average_hash(Image.open(imagePath))
-                                            c = hashs - otherhash
-                                            print('gia tri so sánh 2 bức ảnh: ',c)
-                                            if(c < 24 and (ID_ss == int(profile[0]))):
-                                                print('Điểm danh đúng rồi')
-                                                QuerySql.insert_ttdiemdanh(profile[0],profile[1],Ngay,Gio)
-                                                #Xóa ảnh cũ cùng ID để thêm ảnh mới vào
-                                                path2 = 'image_correct'
-                                                DeleteFile(path2, int(profile[0])).delete()
-                                                cv2.imwrite('image_correct/'+str(profile[1])+'.'+str(profile[0]) +'.'+ str(image_dd) + '.jpg', img_cv)
-                                            elif(c > 24 and ID_ss!=int(profile[0])):
-                                                print('Điểm danh sai rồi: ', profile[1])
-                                                cv2.imwrite('image_incorrect/'+str(profile[1])+'.'+str(profile[0]) +'.'+ str(image_dd) + '.jpg', img_cv)
-                                # else:
-                                #     messagebox.showinfo('message', 'Không nằm trong khung giờ điểm danh')
+                                            compareTwoImg = hashs - otherhash
+                                            print('value compare two image is: ', compareTwoImg)
+                                            if(compareTwoImg < 24 and (getIdsFromPathFolder == int(profile[0]))):
+                                                print('attendance correcr')
+                                                QuerySql.insertHistoryAttendance(profile[0], profile[1], today, currentTime)
+                                                pathImgCorrectRealtime = 'image_correct'
+                                                DeleteFile(pathImgCorrectRealtime, int(profile[0])).delete()
+                                                cv2.imwrite('image_correct/'+str(profile[1])+'.'+str(profile[0]) +'.'+ str(numberPathAttendance) + '.jpg', grayConvertRgb)
+                                            elif(compareTwoImg > 24 and getIdsFromPathFolder != int(profile[0])):
+                                                print('attendance incorrect: ', profile[1])
+                                                cv2.imwrite('image_incorrect/'+str(profile[1])+'.'+str(profile[0]) +'.'+ str(numberPathAttendance) + '.jpg', grayConvertRgb)
                             else: 
-                                img_unknow = img_unknow+1
-                                cv2.putText(img, 'Name: '+ str(Id),(x-30,y-20), fontface, fontscale, fontcolor ,2)
-                                cv2.imwrite('image_unknown/'+str(Id)+'.' + str(img_unknow) + '.jpg', img)
-                            img = cv2.resize(img, (780,480))
-                            cv2.imshow('Frame',img) 
-                        if(Gio>gio_to_excel and Gio<gio_end_to_excel):
-                            msnv, hotennv, list_day, list_gio = QuerySql.exportHistoryAttendance()
-                            file_name = 'result_attendance.xls'
-                            Export.Excel(msnv,hotennv,list_day,list_gio,file_name)
+                                numberPathUnknown += 1
+                                cv2.putText(imgRealtime, 'name: '+ str(idPredict), (x-30, y-20), fontface, fontscale, fontcolor , 2)
+                                cv2.imwrite('image_unknown/'+str(idPredict)+'.' + str(numberPathUnknown) + '.jpg', imgRealtime)
+                            imgRealtime = cv2.resize(imgRealtime, (780, 480))
+                            cv2.imshow('Frame', imgRealtime) 
+                        if(currentTime > startExport and currentTime < endExport):
+                            numberIds, names, dateList, timeList = QuerySql.exportHistoryAttendance()
+                            fileName = 'export_excel/result_attendance.xls'
+                            Export.excel(numberIds, names, dateList, timeList, fileName)
                         k = cv2.waitKey(30)
                         if k == 27:
                             break
                         elif k ==-1:
                             continue   
                 except:
-                    messagebox.showinfo('message', 'Vui lòng trainning trước!')
+                    messagebox.showinfo('message', 'Please enter button trainning model!')
             def searchByDateFunc():
                 searchKey = str(inputSearchByDate.get())
                 global searchDate
@@ -565,8 +560,8 @@ def loginApp():
                     btn_recog_ddhn.place(x=770, y=60)
                 def btn_ExToExcel():
                     msnv, hotennv, list_day, list_gio = QuerySql.exportHistoryAttendance()
-                    file_name = 'attendance_today.xls'
-                    Export.Excel(msnv,hotennv,list_day,list_gio,file_name)
+                    file_name = 'export_execl/attendance_today.xls'
+                    Export.excel(msnv,hotennv,list_day,list_gio,file_name)
                     messagebox.showinfo('TB','Export đến file exel thành công')
 
                 btn_ExToExcel= Button(tk_hn, text='Export to excel', font=(fontTypeApp, 14), fg='white', bg='green',
@@ -637,9 +632,9 @@ def loginApp():
                             if((currentTime > startMorning and currentTime < endMorning) or (currentTime > startAfternoon and currentTime < endAfternoon)):
                                 for n in idAttendanceds:
                                     if(int(n) == int(profileCap[0])):
-                                        countCapReco = countCapReco + 1
+                                        countCapReco += 1
                                 if(countCapReco < 1):
-                                    imageRecognitionCap = imageRecognitionCap + 1
+                                    imageRecognitionCap += 1
                                     grayToRgbImage = cv2.cvtColor(grayImageCap[y:y+h,x:x+w], cv2.COLOR_GRAY2RGB)
                                     cv2.imwrite('image_attendance/anhchup'+'.'+str(profileCap[0]) +'.'+ str(imageRecognitionCap) + '.jpg', grayToRgbImage)
                                     pathImageCompareCap = 'image_compare'
@@ -705,9 +700,9 @@ def loginApp():
             buttonRecognitionImage= Button(mainAppScreen, text = 'Capture attendance', font = (fontTypeApp, 14), fg = 'white', bg='green',
             width = 18, height = 1, command = recognitionImageFunc)
             buttonRecognitionImage.place(x = 250, y = 500)
-            btn_diemdanhrealtime= Button(mainAppScreen, text='Điểm danh real time', font=(fontTypeApp, 14), fg='white', bg='green',
-            width=18, height=1, command=btn_diemdanhrealtime)
-            btn_diemdanhrealtime.place(x=10, y = 500)
+            buttonAttendanceRealtime = Button(mainAppScreen, text = 'attendance realtime', font = (fontTypeApp, 14), fg = 'white', bg = 'green',
+            width = 18, height = 1, command = attendanceRealtimeFunc)
+            buttonAttendanceRealtime.place(x = 10, y = 500)
             buttonSearchByDate= Button(mainAppScreen, text = 'Search By Date', font = (fontTypeApp, 14), fg = 'white', bg='green',
             width = 18, height = 1, command = searchByDateFunc)
             buttonSearchByDate.place(x=10, y = 550)
