@@ -4,14 +4,14 @@ from datetime import datetime, date, time
 class SearchDate:
     @classmethod
     def formatDate(cls, searchkey):
-        format = "%d-%m-%Y"
+        format = "%Y-%m-%d"
         isCheck = True
         try:
             isCheck = bool(datetime.strptime(searchkey, format))
-        except ValueError:
+        except:
             isCheck = False
         if(isCheck == False):
-            messagebox.showinfo("message", "Enter date by format: 20-09-2020")
+            messagebox.showinfo("message", "Enter date by format: 2023-03-18")
         return searchkey
 
 class CurrentDate:

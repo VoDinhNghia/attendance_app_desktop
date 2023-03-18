@@ -15,7 +15,7 @@ import time as time_out
 from connect_db import QuerySql
 from db_image import GetInfoImage
 from delete_file import DeleteFile
-from view_image import Xem_Image
+from view_image import ViewImage
 from excel import Export
 from date import SearchDate, CurrentDate
 from accuracy import Accuracy
@@ -288,7 +288,7 @@ def loginApp():
                         messagebox.showinfo('message', 'Xóa thành công')
                     def btn_xemAnh():
                         path1 = 'image_compare'
-                        Xem_Image(path1, int(dv[0])).Xem()
+                        ViewImage(path1, int(dv[0])).view()
                     btn_xemAnh= Button(tk_ds, text='Xem ảnh', font=(fontTypeApp, 14), fg='white', bg='green',
                                     width=10, height=1, command=btn_xemAnh)
                     btn_xemAnh.place(x=300, y=60)
@@ -377,124 +377,123 @@ def loginApp():
                             continue   
                 except:
                     messagebox.showinfo('message', 'Vui lòng trainning trước!')
-            def btn_dsdiemdanh():
-                Tim_ngay = str(Entry_dsdiemdanh.get())
-                global x
-                x = SearchDate.formatDate(Tim_ngay)
-                rows_ds = QuerySql.queryHistoryByDate(x)
-                tk_ds = Tk()
-                tk_ds.title('Danh sách điểm danh')
-                tk_ds.geometry('950x550')
-                tk_ds.resizable(False,False)
-                tk_ds.configure(bg='CornflowerBlue')
-                lbl_title_ds = Label(tk_ds, text = 'DANH SÁCH ĐIỂM DANH NGAY '+str(x), font = (fontTypeApp, 18),fg='green')
-                lbl_title_ds.place(x=200, y =10)
-                entry_1 = Label(tk_ds, text='',font = (fontTypeApp, 14))
-                entry_1.place(x=10,y =60)
-                entry_2 = Label(tk_ds, text='',font = (fontTypeApp, 14))
-                entry_2.place(x=80, y =60)
-                entry_3 = Label(tk_ds, text='',font = (fontTypeApp, 14))
-                entry_3.place(x=300, y =60)
-                entry_4 = Label(tk_ds, text='', font = (fontTypeApp, 14))
-                entry_4.place(x=500, y =60)
-
-                frm = Frame(tk_ds)
-                frm.pack(side = tkinter.LEFT, padx=50)
-                tv = ttk.Treeview(frm, columns = (1,2,3,4), show ='headings', height = '15', padding='Centimeters')
-                tv.pack(side ='right')
-                verscrlbar = ttk.Scrollbar(tk_ds, orient ='vertical', command = tv.yview)
-                verscrlbar.pack(side ='right', fill ='x') 
-                tv.configure(xscrollcommand = verscrlbar.set)
-                tv.heading(1, text = 'Mã số nhân viên')
-                tv.heading(2, text = 'Họ và tên')
-                tv.heading(3, text = 'Ngày điểm danh')
-                tv.heading(4, text = 'Giờ điểm danh')
-                for i in rows_ds:
-                    tv.insert('','end',values=i)
+            def searchByDateFunc():
+                searchKey = str(inputSearchByDate.get())
+                global searchDate
+                searchDate = SearchDate.formatDate(searchKey)
+                resultAttendanceByDate = QuerySql.queryHistoryByDate(searchDate)
+                searchByDateScreen = Tk()
+                searchByDateScreen.title('attendance list')
+                searchByDateScreen.geometry('950x550')
+                searchByDateScreen.resizable(False,False)
+                searchByDateScreen.configure(bg='CornflowerBlue')
+                lableTitleSearch = Label(searchByDateScreen, text = 'attendance list by date '+str(searchDate), font = (fontTypeApp, 18),fg='green')
+                lableTitleSearch.place(x = 200, y = 10)
+                showNumberIdOnClickRow = Label(searchByDateScreen, text = '', font = (fontTypeApp, 14))
+                showNumberIdOnClickRow.place(x = 10, y = 60)
+                showNameOnClickRow = Label(searchByDateScreen, text = '', font = (fontTypeApp, 14))
+                showNameOnClickRow.place(x = 80, y = 60)
+                showDateOnClickRow = Label(searchByDateScreen, text = '', font = (fontTypeApp, 14))
+                showDateOnClickRow.place(x = 300, y = 60)
+                showTimeOnClickRow = Label(searchByDateScreen, text = '', font = (fontTypeApp, 14))
+                showTimeOnClickRow.place(x = 500, y = 60)
+                frameResultSearch = Frame(searchByDateScreen)
+                frameResultSearch.pack(side = tkinter.LEFT, padx = 50)
+                treeViewSearch = ttk.Treeview(frameResultSearch, columns = (1,2,3,4), show = 'headings', height = '15', padding = 'Centimeters')
+                treeViewSearch.pack(side = 'right')
+                verscrlbarSearch = ttk.Scrollbar(searchByDateScreen, orient = 'vertical', command = treeViewSearch.yview)
+                verscrlbarSearch.pack(side ='right', fill ='x') 
+                treeViewSearch.configure(xscrollcommand = verscrlbarSearch.set)
+                treeViewSearch.heading(1, text = 'Number Id')
+                treeViewSearch.heading(2, text = 'Name')
+                treeViewSearch.heading(3, text = 'Date attendance')
+                treeViewSearch.heading(4, text = 'Time attendance')
+                for i in resultAttendanceByDate:
+                    treeViewSearch.insert('', 'end', values = i)
                 
-                def selectItem(event):
-                    curItem = tv.focus()
-                    get_value = tv.item(curItem)
-                    a = get_value['values']
-                    dv = []
-                    for i in a:
-                        dv.append(i)
+                def selectItemSearch(event):
+                    cursorItem = treeViewSearch.focus()
+                    getValueOnClick = treeViewSearch.item(cursorItem)
+                    valuesOnRow = getValueOnClick['values']
+                    values = []
+                    for i in valuesOnRow:
+                        values.append(i)
                     try:
-                        entry_1.configure(text=dv[0])
-                        entry_2.configure(text=dv[1])
-                        entry_3.configure(text=dv[2])
-                        entry_4.configure(text=dv[3])
+                        showNumberIdOnClickRow.configure(text = values[0])
+                        showNameOnClickRow.configure(text = values[1])
+                        showDateOnClickRow.configure(text = values[2])
+                        showTimeOnClickRow.configure(text = values[3])
                     except:
                         print('error exception')
-                    def btn_xoa_dd():
+                    def deleteAttendanceSearchFunc():
                         try:
-                            row = tv.selection()[0]
-                            id_f = int(dv[0])
-                            gio_d = dv[3]
+                            rowDeleteSearch = treeViewSearch.selection()[0]
+                            idSearch = int(values[0])
+                            timeSearch = values[3]
                         except:
                             print('error exception')
-                        tv.delete(row)
-                        QuerySql.deleteHistoryAttendance(id_f,gio_d)
-                        messagebox.showinfo('message', 'Xóa thành công')
-                    def btn_xemAnh_dd():
-                        path2 = 'image_correct'
-                        Xem_Image(path2,int(dv[0])).Xem()
+                        treeViewSearch.delete(rowDeleteSearch)
+                        QuerySql.deleteHistoryAttendance(idSearch, timeSearch)
+                        messagebox.showinfo('message', 'Delete row success.')
+                    def viewImageSearchFunc():
+                        pathImgCorrectSearch = 'image_correct'
+                        ViewImage(pathImgCorrectSearch, int(values[0])).view()
 
-                    btn_xemAnh_dd= Button(tk_ds, text='Xem ảnh', font=(fontTypeApp, 14), fg='white', bg='green',
-                                    width=10, height=1, command=btn_xemAnh_dd)
-                    btn_xemAnh_dd.place(x=650, y=60)
-                    btn_recog_dd= Button(tk_ds, text='Xóa', font=(fontTypeApp, 14), fg='white', bg='green',
-                                    width=10, height=1, command=btn_xoa_dd)
-                    btn_recog_dd.place(x=770, y=60)
-                def btn_thongke():
-                    arr_lb, arr_tt, arr_chuadd = QuerySql.statictisHistoryByDate(x)
-                    tk_tk = Tk()
-                    tk_tk.title('Danh sách nhân viên chưa điểm danh')
-                    tk_tk.geometry('600x550')
-                    tk_tk.resizable(False,False)
-                    tk_tk.configure(bg='CornflowerBlue')
-                    lbl_title_ds_ch = Label(tk_tk, text = 'DANH SÁCH NHÂN VIÊN CHƯA ĐIỂM DANH', font = (fontTypeApp, 18),fg='green')
-                    lbl_title_ds_ch.place(x=50, y =10)
+                    buttonViewImageSearch = Button(searchByDateScreen, text = 'View image', font = (fontTypeApp, 14), fg = 'white', bg = 'green',
+                        width = 10, height = 1, command = viewImageSearchFunc)
+                    buttonViewImageSearch.place(x = 650, y = 60)
+                    buttonDeleteAttendanceSearch = Button(searchByDateScreen, text = 'Delete', font=(fontTypeApp, 14), fg = 'white', bg = 'green',
+                        width = 10, height = 1, command = deleteAttendanceSearchFunc)
+                    buttonDeleteAttendanceSearch.place(x=770, y=60)
+                def statictisSearchFunc():
+                    lableListSearch, attendanceListSearch, notYetAttendanceSearch = QuerySql.statictisHistoryByDate(searchDate)
+                    statictisSearchScreen = Tk()
+                    statictisSearchScreen.title('List staff not yet attendance')
+                    statictisSearchScreen.geometry('600x550')
+                    statictisSearchScreen.resizable(False, False)
+                    statictisSearchScreen.configure(bg='CornflowerBlue')
+                    lableTitleNotYetAttendanceSearch = Label(statictisSearchScreen, text = 'List staff not yet attendance', font = (fontTypeApp, 18),fg = 'green')
+                    lableTitleNotYetAttendanceSearch.place(x = 50, y = 10)
 
-                    frm1 = Frame(tk_tk)
-                    frm1.pack(side = tkinter.LEFT, padx=30)
-                    tv1 = ttk.Treeview(frm1, columns = (1,2), show ='headings', height = '15', padding='Centimeters')
-                    tv1.pack(side ='right')
-                    verscrlbar1 = ttk.Scrollbar(tk_tk, orient ='vertical', command = tv1.yview)
-                    verscrlbar1.pack(side ='right', fill ='x') 
-                    tv1.configure(xscrollcommand = verscrlbar1.set)
-                    tv1.heading(1, text = 'Mã số nhân viên')
-                    tv1.heading(2, text = 'Họ và tên')
+                    frameStatictisSearch = Frame(statictisSearchScreen)
+                    frameStatictisSearch.pack(side = tkinter.LEFT, padx = 30)
+                    treeViewStatictisSearch = ttk.Treeview(frameStatictisSearch, columns = (1,2), show = 'headings', height = '15', padding='Centimeters')
+                    treeViewStatictisSearch.pack(side = 'right')
+                    verscrlbarStatictisSearch = ttk.Scrollbar(statictisSearchScreen, orient = 'vertical', command = treeViewStatictisSearch.yview)
+                    verscrlbarStatictisSearch.pack(side ='right', fill = 'x') 
+                    treeViewStatictisSearch.configure(xscrollcommand = verscrlbarStatictisSearch.set)
+                    treeViewStatictisSearch.heading(1, text = 'Number Id')
+                    treeViewStatictisSearch.heading(2, text = 'name')
                     
-                    lbl_tk = Label(tk_tk, text='Chưa điểm danh: ', font=(fontTypeApp, 16), fg='red')
-                    lbl_tk.place(x=100,y=60)
-                    lbl_tk_va = Label(tk_tk, text=' ', font=(fontTypeApp, 16), fg='red')
-                    lbl_tk_va.place(x=300,y=60)
-                    lbl_tk_roi = Label(tk_tk, text='Điểm danh rồi: ', font=(fontTypeApp, 16), fg='red')
-                    lbl_tk_roi.place(x=400,y=60)
-                    lbl_tk_vaRoi = Label(tk_tk, text=' ', font=(fontTypeApp, 16), fg='red')
-                    lbl_tk_vaRoi.place(x=550,y=60)
-                    if(len(arr_tt)==0):
-                        for y in arr_lb:
-                            tv1.insert('','end',values=(y[0],y[1]))
-                        lbl_tk_va.configure(text = len(arr_lb))
-                        lbl_tk_vaRoi.configure(text = len(arr_tt))
-                    elif(len(arr_tt)==len(arr_lb)):
-                        for i in arr_chuadd:
-                            tv1.insert('','end',values='')
-                        lbl_tk_va.configure(text = 0)
-                        lbl_tk_vaRoi.configure(text = len(arr_tt))
+                    lableStatictisSearchNotYet = Label(statictisSearchScreen, text='Not yet: ', font = (fontTypeApp, 16), fg = 'red')
+                    lableStatictisSearchNotYet.place(x = 100, y = 60)
+                    lableStatictisSearchNotYetValue = Label(statictisSearchScreen, text = ' ', font = (fontTypeApp, 16), fg = 'red')
+                    lableStatictisSearchNotYetValue.place(x = 300, y = 60)
+                    lableStatictisSearchAlready = Label(statictisSearchScreen, text = 'Already: ', font = (fontTypeApp, 16), fg = 'red')
+                    lableStatictisSearchAlready.place(x = 400, y = 60)
+                    lblTitleStatictisSearchAlreadyValue = Label(statictisSearchScreen, text = ' ', font = (fontTypeApp, 16), fg = 'red')
+                    lblTitleStatictisSearchAlreadyValue.place(x = 550, y = 60)
+                    if(len(attendanceListSearch) == 0):
+                        for y in lableListSearch:
+                            treeViewStatictisSearch.insert('', 'end', values = (y[0], y[1]))
+                        lableStatictisSearchNotYetValue.configure(text = len(lableListSearch))
+                        lblTitleStatictisSearchAlreadyValue.configure(text = len(attendanceListSearch))
+                    elif(len(attendanceListSearch) == len(lableListSearch)):
+                        for i in notYetAttendanceSearch:
+                            treeViewStatictisSearch.insert('', 'end', values = '')
+                        lableStatictisSearchNotYetValue.configure(text = 0)
+                        lblTitleStatictisSearchAlreadyValue.configure(text = len(attendanceListSearch))
                     else:
-                        for i in arr_chuadd:
-                            tv1.insert('','end',values=(i[0],i[1]))
-                        lbl_tk_va.configure(text = len(arr_chuadd))
-                        lbl_tk_vaRoi.configure(text = len(arr_tt))
+                        for i in notYetAttendanceSearch:
+                            treeViewStatictisSearch.insert('', 'end', values = (i[0], i[1]))
+                        lableStatictisSearchNotYetValue.configure(text = len(notYetAttendanceSearch))
+                        lblTitleStatictisSearchAlreadyValue.configure(text = len(attendanceListSearch))
 
-                btn_thongke= Button(tk_ds, text='Thống kê', font=(fontTypeApp, 14), fg='white', bg='green',
-                                    width=10, height=1, command=btn_thongke)
-                btn_thongke.place(x=350, y=480)
+                buttonStatictisSearch = Button(searchByDateScreen, text = 'Statictis', font = (fontTypeApp, 14), fg = 'white', bg = 'green',
+                    width = 10, height = 1, command = statictisSearchFunc)
+                buttonStatictisSearch.place(x = 350, y = 480)
                 
-                tv.bind('<Button-1>', selectItem)
+                treeViewSearch.bind('<Button-1>', selectItemSearch)
 
             def btn_ddhomnay():
                 rows_hn = QuerySql.fetchHistoryAttendanceByCurrentDate()
@@ -556,7 +555,7 @@ def loginApp():
                         messagebox.showinfo('message', 'Xóa thành công')
                     def btn_xemAnh_ddhn():
                         path2 = 'image_correct'
-                        Xem_Image(path2, int(dv[0])).Xem()
+                        ViewImage(path2, int(dv[0])).view()
 
                     btn_xemAnh_ddhn= Button(tk_hn, text='Xem ảnh', font=(fontTypeApp, 14), fg='white', bg='green',
                                     width=10, height=1, command=btn_xemAnh_ddhn)
@@ -709,11 +708,11 @@ def loginApp():
             btn_diemdanhrealtime= Button(mainAppScreen, text='Điểm danh real time', font=(fontTypeApp, 14), fg='white', bg='green',
             width=18, height=1, command=btn_diemdanhrealtime)
             btn_diemdanhrealtime.place(x=10, y = 500)
-            btn_dsdiemdanh= Button(mainAppScreen, text='Danh sách theo ngày', font=(fontTypeApp, 14), fg='white', bg='green',
-            width=18, height=1, command=btn_dsdiemdanh)
-            btn_dsdiemdanh.place(x=10, y = 550)
-            Entry_dsdiemdanh = Entry(mainAppScreen, width=20, bd=5,font=(fontTypeApp, 14))
-            Entry_dsdiemdanh.place(x= 250, y = 550)
+            buttonSearchByDate= Button(mainAppScreen, text = 'Search By Date', font = (fontTypeApp, 14), fg = 'white', bg='green',
+            width = 18, height = 1, command = searchByDateFunc)
+            buttonSearchByDate.place(x=10, y = 550)
+            inputSearchByDate = Entry(mainAppScreen, width=20, bd=5,font=(fontTypeApp, 14))
+            inputSearchByDate.place(x= 250, y = 550)
             lableShowNameCapReco = Label(mainAppScreen, text = '', font=(fontTypeApp, 16), fg = 'red')
             lableShowNameCapReco.place(x = 900, y = 410)
             lableShowNumberIdCapReco = Label(mainAppScreen, text = '', font=(fontTypeApp, 16), fg = 'red')
