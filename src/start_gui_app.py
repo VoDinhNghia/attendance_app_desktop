@@ -15,17 +15,16 @@ import time as time_out
 from connect_db import QuerySql
 from db_image import GetInfoImage
 from delete_file import DeleteFile
-from view_image import ViewImage
 from excel import Export
 from date import CurrentDate
 from accuracy import Accuracy
 from get_camera import Camera
-from add_new_user import AddNewUser
-from add_data_test import AddNewDataTest
 from frame_data_user_list import FrameDateUserList
 from frame_search_by_date import FrameSearchByDate
 from frame_attendance_today import FrameAttendanceToday
 from frame_attendance_image import FrameAttendanceImage
+from frame_change_admin import ChangeInfoAdmin
+from frame_add_new_user import AddNewUserData
 # if not yet tranning model then enter trainning model when start app => action
 
 root = Tk()
@@ -47,11 +46,7 @@ fontcolor = (250,0,0)
 fontTypeApp = 'Times New Roman'
 recognizer = cv2.face.LBPHFaceRecognizer_create()
 path = 'image_trainning_model'
-md5 = hashlib.md5()
-password = 'Nghia123'
-md5.update(password.encode())
-password = md5.hexdigest()
-print(password)
+# password default = 'Nghia123'
 def loginApp():
     username = inputUsername.get()
     password = inputPassword.get()
@@ -59,7 +54,6 @@ def loginApp():
     md5 = hashlib.md5()
     md5.update(password.encode())
     password = md5.hexdigest()
-    print('password cryto: ', password)
     if(username == '' or password == ''):
         messagebox.showinfo('message', 'Please fill username and password')
     elif(resultQueryLogin[0] != username or resultQueryLogin[1] != password):
@@ -102,7 +96,6 @@ def loginApp():
 
             lableShowFace = Label(mainAppScreen)
             lableShowFace.place(x = 20, y = 10)
-            #video_mylove.mp4 đọc và nhận dạng nhưng tốc độ quá nhanh
             def showFaceStream():
                 try:
                     global faceStream
@@ -129,44 +122,11 @@ def loginApp():
                 messagebox.showinfo('message', 'Finish trainning model')
 
             def addNewUserTrainModelFunc():                  
-                addNewUserTrainModelScreen = Tk()
-                addNewUserTrainModelScreen.geometry('500x150')
-                addNewUserTrainModelScreen.resizable(False, False)
-                addNewUserTrainModelScreen.configure(bg = 'CornflowerBlue')
-                def addNewUserFunc():
-                    getValueNumberIdAddNew = inputNewNumberId.get()
-                    getValueNameAddNew = inputNewNameUser.get()
-                    if(len(getValueNumberIdAddNew) == 0 or len(getValueNameAddNew) == 0):
-                        messagebox.showinfo('message', 'Please fill all fields')
-                    elif getValueNumberIdAddNew.isdecimal:
-                        AddNewUser(getValueNumberIdAddNew, getValueNameAddNew, latestFrame, lastRet).add()
-                    else:
-                        messagebox.showinfo('message', 'Number Id must is isdecimal.')
-                    addNewUserTrainModelScreen.destroy()
-                
-                def addNewDataTestFunc():
-                    getIdAddTest = inputNewNumberId.get()
-                    getNameTest = inputNewNameUser.get()
-                    AddNewDataTest(getIdAddTest, getNameTest , latestFrame, lastRet).add()
-                    
-                lbl_ID_nguoiMoi = Label(addNewUserTrainModelScreen, text = 'number Id', bd = 4, fg = 'white', font = (fontTypeApp, 16), width = 10, bg = 'green')
-                lbl_ID_nguoiMoi.place(x = 15, y = 10)
-                inputNewNumberId = Entry(addNewUserTrainModelScreen, bd = 5, width = 35, font = (fontTypeApp, 14))
-                inputNewNumberId.place(x = 150, y = 10)
-                lbl_Ten_nguoiMoi = Label(addNewUserTrainModelScreen, text='name', bd=4, fg='white', font=(fontTypeApp, 16), width= 10, bg='green')
-                lbl_Ten_nguoiMoi.place(x= 15, y= 45)
-                inputNewNameUser = Entry(addNewUserTrainModelScreen, width=35, bd=5,font=(fontTypeApp, 14))
-                inputNewNameUser.place(x= 150, y= 45)
-                buttonAddNewUser = Button(addNewUserTrainModelScreen, text = 'Add new user', font = (fontTypeApp, 14), fg = 'white', bg = 'green',
-                    width = 15, height = 1, command = addNewUserFunc)
-                buttonAddNewUser.place(x = 100, y = 90)
-                buttonAddNewDataTest = Button(addNewUserTrainModelScreen, text = 'Add data test', font = (fontTypeApp, 14), fg = 'white', bg = 'green',
-                    width = 15, height = 1, command = addNewDataTestFunc)
-                buttonAddNewDataTest.place(x = 300, y = 90)
-            def btn_danhsachNguoi():
+                AddNewUserData(latestFrame, lastRet).show()
+
+            def userListFunc():
                 FrameDateUserList.show()
-                
-            
+                       
             def attendanceRealtimeFunc():
                 numberPathAttendance = 0
                 numberPathUnknown = 0
@@ -241,6 +201,7 @@ def loginApp():
                             continue   
                 except:
                     messagebox.showinfo('message', 'Please enter button trainning model!')
+
             def searchByDateFunc():
                 searchKey = str(inputSearchByDate.get())
                 FrameSearchByDate(searchKey).show()
@@ -248,60 +209,21 @@ def loginApp():
             def attendanceTodayListFunc():
                 FrameAttendanceToday.show()
             
-            def btn_doiAdmin():
-                tk_doiPass = Tk()
-                tk_doiPass.geometry('550x150')
-                tk_doiPass.resizable(False,False)
-                tk_doiPass.configure(bg='CornflowerBlue')
-
-                def btn_newPass():
-                    new_username = lbl_NID_user.get()
-                    new_pass = lbl_T_pass.get()
-                    if((new_username == '' and new_pass=='') or new_username == '' or new_pass==''):
-                        messagebox.showinfo('message', 'Vui lòng nhập thông tin đầy đủ')
-                    elif(len(new_pass) < 6 and len(new_pass)>10):
-                        messagebox.showinfo('message', 'Pass phải có độ dài từ 6 đến 10 ký tự')
-                    else:
-                        md = hashlib.md5()
-                        md.update(new_pass.encode())
-                        new_pass = md.hexdigest()
-                        QuerySql.updateAdmin(new_username, new_pass)
-                        messagebox.showinfo('message', 'Thay đổi thành công')
-                        tk_doiPass.destroy()
-
-                lbl_new_username = Label(tk_doiPass, text='UserName new', bd=4, fg='white', font=(fontTypeApp, 16), width= 10, bg='green')
-                lbl_new_username.place(x= 15, y= 10)
-                lbl_NID_user = Entry(tk_doiPass, width=35, bd=5, font=(fontTypeApp, 14))
-                lbl_NID_user.place(x= 200, y= 10)
-                lbl_pass_new = Label(tk_doiPass, text='PassWord new', bd=4, fg='white', font=(fontTypeApp, 16), width= 10, bg='green')
-                lbl_pass_new.place(x= 15, y= 50)
-                lbl_T_pass = Entry(tk_doiPass, width=35, bd=5, font=(fontTypeApp, 14), show='*')
-                lbl_T_pass.place(x= 200, y= 50)
-
-                btn_newPass = Button(tk_doiPass, text='Đổi Admin', font=(fontTypeApp, 14), fg='white', bg='red',
-                    width=15, height=1, command=btn_newPass)
-                btn_newPass.place(x= 250, y= 90)
+            def changeAdminFunc():
+                ChangeInfoAdmin.show()
 
             def recognitionImageFunc():
                 FrameAttendanceImage(mainAppScreen, latestFrame, lableShowNameCapReco, lableShowNumberIdCapReco, recognizer).show()
                 
             def calculateAccuracyFunc():
-                pathFolderImageTest = 'image_test'
-                idLists, faceLists = GetInfoImage.getImagesAndLabels(pathFolderImageTest) 
-                resultPredict = []
-                for img in faceLists:
-                    gray = cv2.fastNlMeansDenoising(img, None, 4, 5, 11)
-                    predict, conf = recognizer.predict(gray)
-                    resultPredict.append(predict)
-                resultCalculate = Accuracy.calculate(np.array(idLists), np.array(resultPredict))
-                messagebox.showinfo('message','Accuracy of 100 image test is: '+str(resultCalculate) + '%')
+                Accuracy(recognizer).show()
 
             buttonAddNewUserTrainModel = Button(mainAppScreen, text = 'Add new data train', font = (fontTypeApp, 14), fg = 'white', bg = 'green',
-            width = 18, height = 1, command = addNewUserTrainModelFunc)
+                width = 18, height = 1, command = addNewUserTrainModelFunc)
             buttonAddNewUserTrainModel.place(x = 10, y = 400)
-            btn_danhsachNguoi= Button(mainAppScreen, text='Danh sách nhân viên', font=(fontTypeApp, 14), fg='white', bg='green',
-            width=18, height=1, command=btn_danhsachNguoi)
-            btn_danhsachNguoi.place(x=10, y = 450)
+            buttonUserList = Button(mainAppScreen, text= 'User list', font = (fontTypeApp, 14), fg = 'white', bg = 'green',
+                width = 18, height = 1, command = userListFunc)
+            buttonUserList.place(x = 10, y = 450)
             buttonAttendanceToday = Button(mainAppScreen, text='List Attendance today', font=(fontTypeApp, 14), fg='white', bg='green',
                 width = 18, height = 1, command = attendanceTodayListFunc)
             buttonAttendanceToday.place(x=250, y = 400)
@@ -311,17 +233,17 @@ def loginApp():
             btnTrainModel= Button(mainAppScreen, text='Trainning data', font = (fontTypeApp, 14), fg='white', bg='green',
                 width = 15, height = 1, command = trainningModelFunc)
             btnTrainModel.place(x=490, y = 450)
-            btn_doiPass= Button(mainAppScreen, text='Đổi mật khẩu', font=(fontTypeApp, 14), fg='white', bg='green',
-            width=18, height=1, command=btn_doiAdmin)
-            btn_doiPass.place(x=250, y = 450)
+            buttonChangeAdmin = Button(mainAppScreen, text = 'Change Admin', font = (fontTypeApp, 14), fg = 'white', bg = 'green',
+                width = 18, height = 1, command = changeAdminFunc)
+            buttonChangeAdmin.place(x=250, y = 450)
             buttonRecognitionImage= Button(mainAppScreen, text = 'Capture attendance', font = (fontTypeApp, 14), fg = 'white', bg='green',
-            width = 18, height = 1, command = recognitionImageFunc)
+                width = 18, height = 1, command = recognitionImageFunc)
             buttonRecognitionImage.place(x = 250, y = 500)
             buttonAttendanceRealtime = Button(mainAppScreen, text = 'Attendance realtime', font = (fontTypeApp, 14), fg = 'white', bg = 'green',
-            width = 18, height = 1, command = attendanceRealtimeFunc)
+                width = 18, height = 1, command = attendanceRealtimeFunc)
             buttonAttendanceRealtime.place(x = 10, y = 500)
             buttonSearchByDate= Button(mainAppScreen, text = 'Search By Date', font = (fontTypeApp, 14), fg = 'white', bg='green',
-            width = 18, height = 1, command = searchByDateFunc)
+                width = 18, height = 1, command = searchByDateFunc)
             buttonSearchByDate.place(x = 10, y = 550)
             inputSearchByDate = Entry(mainAppScreen, width = 20, bd = 5,font = (fontTypeApp, 14))
             inputSearchByDate.place(x = 250, y = 550)
