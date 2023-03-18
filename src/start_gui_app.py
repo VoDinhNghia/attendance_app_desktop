@@ -20,6 +20,8 @@ from excel import Export
 from date import SearchDate, CurrentDate
 from accuracy import Accuracy
 from get_camera import Camera
+from add_new_user import AddNewUser
+from add_data_test import AddNewDataTest
 # if not yet tranning model then enter trainning model when start app => action
 
 root = Tk()
@@ -133,91 +135,15 @@ def loginApp():
                     if(len(getValueNumberIdAddNew) == 0 or len(getValueNameAddNew) == 0):
                         messagebox.showinfo('message', 'Please fill all fields')
                     elif getValueNumberIdAddNew.isdecimal:
-                        getLableFaceById = QuerySql.selectLabelfaceById(getValueNumberIdAddNew)
-                        if(getLableFaceById is None):
-                            QuerySql.insertLabelface(getValueNumberIdAddNew, getValueNameAddNew)
-                            sampleNum = 0
-                            while(True):
-                                if (lastRet is not None) and (latestFrame is not None):
-                                    img = latestFrame.copy()
-                                    gray = cv2.fastNlMeansDenoising(img, None, 4, 5, 11)
-                                    faces = detector.detectMultiScale(gray, 1.3, 5)
-                                    if(len(faces) == 1):
-                                        for (x, y, w, h) in faces:
-                                            sampleNum += 1
-                                            cv2.imwrite('image_trainning_model/User.'+ getValueNumberIdAddNew +'.'+ str(sampleNum) + '.jpg', gray[y:y+h,x:x+w])
-                                            cv2.imwrite('image_compare/User.'+ getValueNumberIdAddNew +'.'+'.jpg', gray[y:y+h,x:x+w])
-                                        if(sampleNum > 49):
-                                            speaker = win32com.client.Dispatch('SAPI.SpVoice')
-                                            speaker.Speak('Save success please check')
-                                            messagebox.showinfo('message', 'Add success, please check in folder image_trainning_model')
-                                            break
-                                    elif(len(faces) == 0):
-                                        print('face not found.')
-                                        continue
-                                    else: 
-                                        messagebox.showinfo('message','Find tow faces in frame, please add again.')
-                                        QuerySql.deleteLabelface(getValueNumberIdAddNew)
-                                        path = 'image_trainning_model'
-                                        DeleteFile(path, getValueNumberIdAddNew).delete()
-                                        path_ss = 'image_compare'
-                                        DeleteFile(path_ss, getValueNumberIdAddNew).delete()
-                                        break
-                                    cv2.imshow('img', img)
-                                    k = cv2.waitKey(30)
-                                    if k == 27:
-                                        break
-                                    elif k ==-1:
-                                        continue
-                                else:
-                                    print('Not take of video')
-                                    time_out.sleep(0.2)
-                                    continue                                    
-                        else:
-                            messagebox.showinfo('message', 'ID existed in system, please enter ID diff.')
+                        AddNewUser(getValueNumberIdAddNew, getValueNameAddNew, latestFrame, lastRet).add()
                     else:
-                        messagebox.showinfo('message', 'Add new user failed.')
+                        messagebox.showinfo('message', 'Number Id must is isdecimal.')
                     addNewUserTrainModelScreen.destroy()
                 
                 def addNewDataTestFunc():
                     getIdAddTest = inputNewNumberId.get()
                     getNameTest = inputNewNameUser.get()
-                    checkLableInfo = QuerySql.selectLabelfaceById(getIdAddTest)
-                    if(checkLableInfo is None):
-                        messagebox.showinfo('message','ID not found in system.')
-                    else:
-                        sampleNum = 0
-                        while(True):
-                            if (lastRet is not None) and (latestFrame is not None):
-                                imgTest = latestFrame.copy()
-                                grayImageTest = cv2.cvtColor(imgTest, cv2.COLOR_BGR2GRAY)
-                                grayImageTest = cv2.fastNlMeansDenoising(grayImageTest, None, 4, 5, 11)
-                                faces = detector.detectMultiScale(grayImageTest, 1.3, 5)
-                                if(len(faces) == 1):
-                                    for (x,y,w,h) in faces:
-                                        sampleNum += 1
-                                        cv2.imwrite('image_test/'+getNameTest +'.'+ getIdAddTest +'.'+ str(sampleNum) + '.jpg', grayImageTest[y:y+h,x:x+w])
-                                    if(sampleNum > 99):
-                                        messagebox.showinfo('message', 'Add image into data test success.')
-                                        break
-                                elif(len(faces) == 0):
-                                    print('Face not found.')
-                                    continue
-                                else: 
-                                    messagebox.showinfo('message', 'Find tow faces in frame, please add again.')
-                                    path = 'image_test'
-                                    DeleteFile(path, getIdAddTest).delete()
-                                    break
-                                cv2.imshow('img', imgTest)
-                                k = cv2.waitKey(30)
-                                if k == 27:
-                                    break
-                                elif k ==-1:
-                                    continue
-                            else:
-                                print('Not take of video')
-                                time_out.sleep(0.2)
-                                continue
+                    AddNewDataTest(getIdAddTest, getNameTest , latestFrame, lastRet).add()
                     
                 lbl_ID_nguoiMoi = Label(addNewUserTrainModelScreen, text = 'number Id', bd = 4, fg = 'white', font = (fontTypeApp, 16), width = 10, bg = 'green')
                 lbl_ID_nguoiMoi.place(x = 15, y = 10)
