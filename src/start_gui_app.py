@@ -17,13 +17,15 @@ from db_image import GetInfoImage
 from delete_file import DeleteFile
 from view_image import ViewImage
 from excel import Export
-from date import SearchDate, CurrentDate
+from date import CurrentDate
 from accuracy import Accuracy
 from get_camera import Camera
 from add_new_user import AddNewUser
 from add_data_test import AddNewDataTest
 from frame_data_user_list import FrameDateUserList
 from frame_search_by_date import FrameSearchByDate
+from frame_attendance_today import FrameAttendanceToday
+from frame_attendance_image import FrameAttendanceImage
 # if not yet tranning model then enter trainning model when start app => action
 
 root = Tk()
@@ -243,85 +245,8 @@ def loginApp():
                 searchKey = str(inputSearchByDate.get())
                 FrameSearchByDate(searchKey).show()
 
-            def btn_ddhomnay():
-                rows_hn = QuerySql.fetchHistoryAttendanceByCurrentDate()
-                tk_hn = Tk()
-                tk_hn.title('Danh sách điểm danh hôm nay')
-                tk_hn.geometry('950x550')
-                tk_hn.resizable(False,False)
-                tk_hn.configure(bg='CornflowerBlue')
-                lbl_title_dshn = Label(tk_hn, text = 'DANH SÁCH ĐIỂM DANH NGAY HÔM NAY', font = (fontTypeApp, 18),fg='green')
-                lbl_title_dshn.place(x=200, y =10)
-                entry_1hn = Label(tk_hn, text='',font = (fontTypeApp, 14))
-                entry_1hn.place(x=10,y =60)
-                entry_2hn = Label(tk_hn, text='',font = (fontTypeApp, 14))
-                entry_2hn.place(x=80, y =60)
-                entry_3hn = Label(tk_hn, text='',font = (fontTypeApp, 14))
-                entry_3hn.place(x=300, y =60)
-                entry_4hn = Label(tk_hn, text='', font = (fontTypeApp, 14))
-                entry_4hn.place(x=500, y =60)
-
-                frmhn = Frame(tk_hn)
-                frmhn.pack(side = tkinter.LEFT, padx=50)
-                tvhn = ttk.Treeview(frmhn, columns = (1,2,3,4), show ='headings', height = '15', padding='Centimeters')
-                tvhn.pack(side ='right')
-                verscrlbarhn = ttk.Scrollbar(tk_hn, orient ='vertical', command = tvhn.yview)
-                verscrlbarhn.pack(side ='right', fill ='x') 
-                tvhn.configure(xscrollcommand = verscrlbarhn.set)
-                tvhn.heading(1, text = 'Mã số nhân viên')
-                tvhn.heading(2, text = 'Họ và tên')
-                tvhn.heading(3, text = 'Ngày điểm danh')
-                tvhn.heading(4, text = 'Giờ điểm danh')
-                for i in rows_hn:
-                    tvhn.insert('','end',values=i)
-
-                def selectItem(event):
-                    curItem = tvhn.focus()
-                    get_value = tvhn.item(curItem)
-                    a = get_value['values']
-                    dv = []
-                    for i in a:
-                        dv.append(i)
-                    try:
-                        entry_1hn.configure(text=dv[0])
-                        entry_2hn.configure(text=dv[1])
-                        entry_3hn.configure(text=dv[2])
-                        entry_4hn.configure(text=dv[3])
-                    except:
-                        print('error exception')
-                    def btn_xoa_ddhn():
-                        try:
-                            row = tvhn.selection()[0]
-                            id_f = int(dv[0])
-                            gio_d = dv[3]
-                        except:
-                            print('error exception')
-                        tvhn.delete(row)
-                        QuerySql.deleteHistoryAttendance(id_f,gio_d)
-                        path2 = 'image_correct'
-                        DeleteFile(path2, int(dv[0])).delete()
-                        messagebox.showinfo('message', 'Xóa thành công')
-                    def btn_xemAnh_ddhn():
-                        path2 = 'image_correct'
-                        ViewImage(path2, int(dv[0])).view()
-
-                    btn_xemAnh_ddhn= Button(tk_hn, text='Xem ảnh', font=(fontTypeApp, 14), fg='white', bg='green',
-                                    width=10, height=1, command=btn_xemAnh_ddhn)
-                    btn_xemAnh_ddhn.place(x=650, y=60)
-                    btn_recog_ddhn= Button(tk_hn, text='Xóa', font=(fontTypeApp, 14), fg='white', bg='green',
-                                    width=10, height=1, command=btn_xoa_ddhn)
-                    btn_recog_ddhn.place(x=770, y=60)
-                def btn_ExToExcel():
-                    msnv, hotennv, list_day, list_gio = QuerySql.exportHistoryAttendance()
-                    file_name = 'export_execl/attendance_today.xls'
-                    Export.excel(msnv,hotennv,list_day,list_gio,file_name)
-                    messagebox.showinfo('TB','Export đến file exel thành công')
-
-                btn_ExToExcel= Button(tk_hn, text='Export to excel', font=(fontTypeApp, 14), fg='white', bg='green',
-                                    width=15, height=1, command=btn_ExToExcel)
-                btn_ExToExcel.place(x=350, y=480)
-                
-                tvhn.bind('<Button-1>', selectItem)
+            def attendanceTodayListFunc():
+                FrameAttendanceToday.show()
             
             def btn_doiAdmin():
                 tk_doiPass = Tk()
@@ -358,69 +283,8 @@ def loginApp():
                 btn_newPass.place(x= 250, y= 90)
 
             def recognitionImageFunc():
-                capImageRecognition = latestFrame.copy()
-                cv2.imwrite('image_cap_recognition/capImage.jpg', capImageRecognition)
-                openImageCap = ImageTk.PhotoImage(Image.open('image_cap_recognition/capImage.jpg').resize((550, 350), Image.LANCZOS))
-                panel = Label(mainAppScreen, image = openImageCap)
-                panel.image = openImageCap
-                panel.place(x = 600, y = 10)
-                readImageCap = cv2.imread('image_cap_recognition/capImage.jpg')
-                grayImageCap = cv2.cvtColor(readImageCap, cv2.COLOR_BGR2GRAY)
-                grayImageCap = cv2.fastNlMeansDenoising(grayImageCap, None, 4, 5, 11)
-                faceImageCap = detector.detectMultiScale(grayImageCap, 1.3, 5)
-                today, currentTime, startMorning, endMorning, startAfternoon, endAfternoon = CurrentDate.dateHourTimeAttendance()                   
-                fetchHistoryAttendance = QuerySql.fetchHistoryAttendanceByCurrentDate()
-                idAttendanceds = []
-                for i in fetchHistoryAttendance:
-                    if (i[0] != None): idAttendanceds.append(i[0])
-                imageRecognitionCap = 0   
-                try:
-                    for(x,y,w,h) in faceImageCap:
-                        idPredict, confident = recognizer.predict(grayImageCap[y:y+h,x:x+w])
-                        profileCap = GetInfoImage.getProfile(idPredict)
-                        nameResultPredict = str(profileCap[1])
-                        numberIdPredict = str(profileCap[0])
-                        if(confident < 90):    
-                            countCapReco = 0
-                            if((currentTime > startMorning and currentTime < endMorning) or (currentTime > startAfternoon and currentTime < endAfternoon)):
-                                for n in idAttendanceds:
-                                    if(int(n) == int(profileCap[0])):
-                                        countCapReco += 1
-                                if(countCapReco < 1):
-                                    imageRecognitionCap += 1
-                                    grayToRgbImage = cv2.cvtColor(grayImageCap[y:y+h,x:x+w], cv2.COLOR_GRAY2RGB)
-                                    cv2.imwrite('image_attendance/anhchup'+'.'+str(profileCap[0]) +'.'+ str(imageRecognitionCap) + '.jpg', grayToRgbImage)
-                                    pathImageCompareCap = 'image_compare'
-                                    imagePathCaps = [os.path.join(pathImageCompareCap, f) for f in os.listdir(pathImageCompareCap)] 
-                                    for imagePath in imagePathCaps:
-                                        idCompareCap = int(os.path.split(imagePath)[-1].split('.')[1])
-                                        hashs = imagehash.average_hash(Image.open('image_attendance/anhchup'+'.'+str(profileCap[0])+'.'+str(imageRecognitionCap)+'.jpg'))
-                                        otherhash = imagehash.average_hash(Image.open(imagePath))
-                                        numberConfidentCap = hashs - otherhash
-                                        if(numberConfidentCap < 22 and (idCompareCap == int(profileCap[0]))):
-                                            QuerySql.insertHistoryAttendance(profileCap[0], profileCap[1], today, currentTime)
-                                            cv2.imwrite('image_correct/'+str(profileCap[1])+'.'+str(profileCap[0]) +'.'+ str(imageRecognitionCap) + '.jpg', grayToRgbImage)
-                                            messagebox.showinfo('message', 'attendance correct')
-                                        else:
-                                            messagebox.showinfo('message', 'attendance incorrect')
-                                else:
-                                    nameResultPredict = ''
-                                    numberIdPredict = ''
-                                    messagebox.showinfo('message', 'attendance already')
-                            else:
-                                nameResultPredict = ''
-                                numberIdPredict = ''
-                                messagebox.showinfo('message', 'Not in the attendance time frame')
-                        else:
-                            nameResultPredict = 'unknow'
-                            numberIdPredict = 'unknow'
+                FrameAttendanceImage(mainAppScreen, latestFrame, lableShowNameCapReco, lableShowNumberIdCapReco, recognizer).show()
                 
-                    nameCapPredict = 'name : ' + nameResultPredict
-                    numberIdCapPredict = 'number Id : ' + numberIdPredict
-                    lableShowNameCapReco.configure(text = nameCapPredict)
-                    lableShowNumberIdCapReco.configure(text = numberIdCapPredict)
-                except:
-                    messagebox.showinfo('message', 'Please enter button trainning model!')
             def calculateAccuracyFunc():
                 pathFolderImageTest = 'image_test'
                 idLists, faceLists = GetInfoImage.getImagesAndLabels(pathFolderImageTest) 
@@ -438,9 +302,9 @@ def loginApp():
             btn_danhsachNguoi= Button(mainAppScreen, text='Danh sách nhân viên', font=(fontTypeApp, 14), fg='white', bg='green',
             width=18, height=1, command=btn_danhsachNguoi)
             btn_danhsachNguoi.place(x=10, y = 450)
-            btn_ddhomnay= Button(mainAppScreen, text='Điểm danh hôm nay', font=(fontTypeApp, 14), fg='white', bg='green',
-            width=18, height=1, command=btn_ddhomnay)
-            btn_ddhomnay.place(x=250, y = 400)
+            buttonAttendanceToday = Button(mainAppScreen, text='List Attendance today', font=(fontTypeApp, 14), fg='white', bg='green',
+                width = 18, height = 1, command = attendanceTodayListFunc)
+            buttonAttendanceToday.place(x=250, y = 400)
             btncalculateAccuracyFunc= Button(mainAppScreen, text='Calculate accuracy', font = (fontTypeApp, 14), fg = 'white', bg = 'green',
                 width = 15, height=1, command = calculateAccuracyFunc)
             btncalculateAccuracyFunc.place(x = 490, y = 400)
