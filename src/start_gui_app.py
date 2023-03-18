@@ -73,7 +73,7 @@ def loginApp():
             latestFrame = None
             lastRet = None
             lo = Lock()
-            def rtsp_cam_buffer(cap):
+            def rtspProtocolbuffer(cap):
                 global latestFrame, lo, lastRet
                 while True:
                     with lo:
@@ -81,40 +81,40 @@ def loginApp():
                             lastRet, latestFrame = cap.read()
                         except:
                             print('error exception')
-            t1 = threading.Thread(target=rtsp_cam_buffer,args=(cap,),name='rtsp_read_thread')
-            t1.daemon=True
+            t1 = threading.Thread(target = rtspProtocolbuffer, args = (cap,), name = 'rtsp_read_thread')
+            t1.daemon = True
             t1.start()
 
             cameraOptionScreen.destroy()
-            tk_main = Tk()
-            tk_main.geometry('1350x700')
-            tk_main.resizable(False,False)
+            mainAppScreen = Tk()
+            mainAppScreen.geometry('1200x600')
+            mainAppScreen.resizable(False,False)
             background_main=ImageTk.PhotoImage(Image.open('image_background_app/background.jpg'))
-            panel = Label(tk_main, image = background_main)
+            panel = Label(mainAppScreen, image = background_main)
             panel.image = background_main
             panel.place(x = 0, y = 0)
 
-            lbl_main = Label(tk_main)
-            lbl_main.place(x=20,y=10)
+            lableShowFace = Label(mainAppScreen)
+            lableShowFace.place(x = 20, y = 10)
             #video_mylove.mp4 đọc và nhận dạng nhưng tốc độ quá nhanh
-            def show_face():
+            def showFaceStream():
                 try:
-                    global face
+                    global faceStream
                     if((optionCamera.isnumeric and len(optionCamera)==1) or len(optionCamera)==0):
-                        _,face = cap.read()
+                        _,faceStream = cap.read()
                     else:
-                        face = latestFrame.copy()
-                    face= cv2.flip(face, 1)
-                    image = cv2.cvtColor(face, cv2.COLOR_BGR2RGBA)
-                    img = Image.fromarray(image)
-                    img = img.resize((620, 480),Image.ANTIALIAS)
-                    imgtk = ImageTk.PhotoImage(image=img)
-                    lbl_main.imgtk = imgtk
-                    lbl_main.configure(image=imgtk)
-                    lbl_main.after(10, show_face)
+                        faceStream = latestFrame.copy()
+                    faceStream = cv2.flip(faceStream, 1)
+                    imageStream = cv2.cvtColor(faceStream, cv2.COLOR_BGR2RGBA)
+                    imgFace = Image.fromarray(imageStream)
+                    imgFace = imgFace.resize((550, 350), Image.LANCZOS)
+                    imgShowFace = ImageTk.PhotoImage(image = imgFace)
+                    lableShowFace.imgShowFace = imgShowFace
+                    lableShowFace.configure(image = imgShowFace)
+                    lableShowFace.after(10, showFaceStream)
                 except:
                     print('error exception')
-            show_face()
+            showFaceStream()
             global recognizer
             def trainningModelFunc():
                 Ids, faces = GetInfoImage.getImagesAndLabels(path)
@@ -610,68 +610,70 @@ def loginApp():
                     width=15, height=1, command=btn_newPass)
                 btn_newPass.place(x= 250, y= 90)
 
-            def btn_ddhinhanh():
-                image1 = latestFrame.copy()
-                cv2.imwrite('anhchupnhandang.jpg', image1)
-                img_nd = ImageTk.PhotoImage(Image.open('anhchupnhandang.jpg').resize((620, 480),Image.ANTIALIAS))
-                panel = Label(tk_main, image = img_nd)
-                panel.image = img_nd
-                panel.place(x = 700, y = 10)
-                img = cv2.imread('anhchupnhandang.jpg')
-
-                gray=cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-                gray = cv2.fastNlMeansDenoising(gray,None,4,5,11)
-                faces=detector.detectMultiScale(gray,1.3,5)
-                global ID, Name, Ngay,Gio
-                Ngay, Gio,start_dd_sang, end_dd_sang,start_dd_chieu,end_dd_chieu = CurrentDate.dateHourTimeAttendance()                   
-                info_tt = QuerySql.fetchHistoryAttendanceByCurrentDate()
-                ids = []
-                for i in info_tt:
-                    ids.append(i[0])
-                image_dd = 0   
+            def recognitionImageFunc():
+                capImageRecognition = latestFrame.copy()
+                cv2.imwrite('image_cap_recognition/capImage.jpg', capImageRecognition)
+                openImageCap = ImageTk.PhotoImage(Image.open('image_cap_recognition/capImage.jpg').resize((550, 350), Image.LANCZOS))
+                panel = Label(mainAppScreen, image = openImageCap)
+                panel.image = openImageCap
+                panel.place(x = 600, y = 10)
+                readImageCap = cv2.imread('image_cap_recognition/capImage.jpg')
+                grayImageCap = cv2.cvtColor(readImageCap, cv2.COLOR_BGR2GRAY)
+                grayImageCap = cv2.fastNlMeansDenoising(grayImageCap, None, 4, 5, 11)
+                faceImageCap = detector.detectMultiScale(grayImageCap, 1.3, 5)
+                today, currentTime, startMorning, endMorning, startAfternoon, endAfternoon = CurrentDate.dateHourTimeAttendance()                   
+                fetchHistoryAttendance = QuerySql.fetchHistoryAttendanceByCurrentDate()
+                idAttendanceds = []
+                for i in fetchHistoryAttendance:
+                    if (i[0] != None): idAttendanceds.append(i[0])
+                imageRecognitionCap = 0   
                 try:
-                    for(x,y,w,h) in faces:
-                        id,conf=recognizer.predict(gray[y:y+h,x:x+w])
-                        profile = GetInfoImage.getProfile(id)
-                        if(conf<90):    
-                            dem = 0
-                            if((Gio > start_dd_sang and Gio < end_dd_sang) or (Gio > start_dd_chieu and Gio < end_dd_chieu)):
-                                for n in ids:
-                                    if(int(n) == int(profile[0])):
-                                        dem=dem+1
-                                if(dem < 1):
-                                    image_dd=image_dd+1
-                                    img_cv = cv2.cvtColor(gray[y:y+h,x:x+w], cv2.COLOR_GRAY2RGB)
-                                    cv2.imwrite('image_attendance/anhchup'+'.'+str(profile[0]) +'.'+ str(image_dd) + '.jpg', img_cv)
-                                    path2 = 'image_compare'
-                                    imagePaths=[os.path.join(path2,f) for f in os.listdir(path2)] 
-                                    for imagePath in imagePaths:
-                                        ID_ss=int(os.path.split(imagePath)[-1].split('.')[1])
-                                        hashs = imagehash.average_hash(Image.open('image_attendance/anhchup'+'.'+str(profile[0])+'.'+str(image_dd)+'.jpg'))
+                    for(x,y,w,h) in faceImageCap:
+                        idPredict, confident = recognizer.predict(grayImageCap[y:y+h,x:x+w])
+                        profileCap = GetInfoImage.getProfile(idPredict)
+                        nameResultPredict = str(profileCap[1])
+                        numberIdPredict = str(profileCap[0])
+                        if(confident < 90):    
+                            countCapReco = 0
+                            if((currentTime > startMorning and currentTime < endMorning) or (currentTime > startAfternoon and currentTime < endAfternoon)):
+                                for n in idAttendanceds:
+                                    if(int(n) == int(profileCap[0])):
+                                        countCapReco = countCapReco + 1
+                                if(countCapReco < 1):
+                                    imageRecognitionCap = imageRecognitionCap + 1
+                                    grayToRgbImage = cv2.cvtColor(grayImageCap[y:y+h,x:x+w], cv2.COLOR_GRAY2RGB)
+                                    cv2.imwrite('image_attendance/anhchup'+'.'+str(profileCap[0]) +'.'+ str(imageRecognitionCap) + '.jpg', grayToRgbImage)
+                                    pathImageCompareCap = 'image_compare'
+                                    imagePathCaps = [os.path.join(pathImageCompareCap, f) for f in os.listdir(pathImageCompareCap)] 
+                                    for imagePath in imagePathCaps:
+                                        idCompareCap = int(os.path.split(imagePath)[-1].split('.')[1])
+                                        hashs = imagehash.average_hash(Image.open('image_attendance/anhchup'+'.'+str(profileCap[0])+'.'+str(imageRecognitionCap)+'.jpg'))
                                         otherhash = imagehash.average_hash(Image.open(imagePath))
-                                        c = hashs - otherhash
-                                        if(c<22 and (ID_ss == int(profile[0]))):
-                                            QuerySql.insert_ttdiemdanh(profile[0],profile[1],Ngay,Gio)
-                                            cv2.imwrite('image_correct/'+str(profile[1])+'.'+str(profile[0]) +'.'+ str(image_dd) + '.jpg', img_cv)
-                                            messagebox.showinfo('message', 'Điểm danh đúng rồi')
+                                        numberConfidentCap = hashs - otherhash
+                                        if(numberConfidentCap < 22 and (idCompareCap == int(profileCap[0]))):
+                                            QuerySql.insertHistoryAttendance(profileCap[0], profileCap[1], today, currentTime)
+                                            cv2.imwrite('image_correct/'+str(profileCap[1])+'.'+str(profileCap[0]) +'.'+ str(imageRecognitionCap) + '.jpg', grayToRgbImage)
+                                            messagebox.showinfo('message', 'attendance correct')
                                         else:
-                                            messagebox.showinfo('message', 'Điểm danh sai')
+                                            messagebox.showinfo('message', 'attendance incorrect')
                                 else:
-                                    messagebox.showinfo('message', 'Đã điểm danh rồi')
+                                    nameResultPredict = ''
+                                    numberIdPredict = ''
+                                    messagebox.showinfo('message', 'attendance already')
                             else:
-                                messagebox.showinfo('message', 'Không nằm trong khung giờ điểm danh')
-                            name = str(profile[1])
-                            ids = str(profile[0])
+                                nameResultPredict = ''
+                                numberIdPredict = ''
+                                messagebox.showinfo('message', 'Not in the attendance time frame')
                         else:
-                            name = 'unknow'
-                            ids = 'unknow'
+                            nameResultPredict = 'unknow'
+                            numberIdPredict = 'unknow'
                 
-                    b = 'Họ tên nv : ' + name
-                    a = 'Mã số nv : ' + ids
-                    lbl_showTT_ten.configure(text = b)
-                    lbl_showTT_Ms.configure(text = a)
+                    nameCapPredict = 'name : ' + nameResultPredict
+                    numberIdCapPredict = 'number Id : ' + numberIdPredict
+                    lableShowNameCapReco.configure(text = nameCapPredict)
+                    lableShowNumberIdCapReco.configure(text = numberIdCapPredict)
                 except:
-                    messagebox.showinfo('message', 'Vui lòng trainning trước!')
+                    messagebox.showinfo('message', 'Please enter button trainning model!')
             def calculateAccuracyFunc():
                 pathFolderImageTest = 'image_test'
                 idLists, faceLists = GetInfoImage.getImagesAndLabels(pathFolderImageTest) 
@@ -683,39 +685,39 @@ def loginApp():
                 resultCalculate = Accuracy.calculate(np.array(idLists), np.array(resultPredict))
                 messagebox.showinfo('message','Accuracy of 100 image test is: '+str(resultCalculate) + '%')
 
-            btn_themNguoiMoi= Button(tk_main, text='Thêm người mới', font=(fontTypeApp, 14), fg='white', bg='green',
+            btn_themNguoiMoi= Button(mainAppScreen, text='Thêm người mới', font=(fontTypeApp, 14), fg='white', bg='green',
             width=18, height=1, command=btn_themNguoiMoi)
-            btn_themNguoiMoi.place(x=10, y=500)
-            btn_danhsachNguoi= Button(tk_main, text='Danh sách nhân viên', font=(fontTypeApp, 14), fg='white', bg='green',
+            btn_themNguoiMoi.place(x=10, y = 400)
+            btn_danhsachNguoi= Button(mainAppScreen, text='Danh sách nhân viên', font=(fontTypeApp, 14), fg='white', bg='green',
             width=18, height=1, command=btn_danhsachNguoi)
-            btn_danhsachNguoi.place(x=10, y=550)
-            btn_ddhomnay= Button(tk_main, text='Điểm danh hôm nay', font=(fontTypeApp, 14), fg='white', bg='green',
+            btn_danhsachNguoi.place(x=10, y = 450)
+            btn_ddhomnay= Button(mainAppScreen, text='Điểm danh hôm nay', font=(fontTypeApp, 14), fg='white', bg='green',
             width=18, height=1, command=btn_ddhomnay)
-            btn_ddhomnay.place(x=250, y=500)
-            btncalculateAccuracyFunc= Button(tk_main, text='Calculate accuracy', font = (fontTypeApp, 14), fg = 'white', bg = 'green',
+            btn_ddhomnay.place(x=250, y = 400)
+            btncalculateAccuracyFunc= Button(mainAppScreen, text='Calculate accuracy', font = (fontTypeApp, 14), fg = 'white', bg = 'green',
                 width = 15, height=1, command = calculateAccuracyFunc)
-            btncalculateAccuracyFunc.place(x=490, y=500)
-            btnTrainModel= Button(tk_main, text='Trainning data', font = (fontTypeApp, 14), fg='white', bg='green',
+            btncalculateAccuracyFunc.place(x = 490, y = 400)
+            btnTrainModel= Button(mainAppScreen, text='Trainning data', font = (fontTypeApp, 14), fg='white', bg='green',
                 width = 15, height = 1, command = trainningModelFunc)
-            btnTrainModel.place(x=490, y=550)
-            btn_doiPass= Button(tk_main, text='Đổi mật khẩu', font=(fontTypeApp, 14), fg='white', bg='green',
+            btnTrainModel.place(x=490, y = 450)
+            btn_doiPass= Button(mainAppScreen, text='Đổi mật khẩu', font=(fontTypeApp, 14), fg='white', bg='green',
             width=18, height=1, command=btn_doiAdmin)
-            btn_doiPass.place(x=250, y=550)
-            btn_ddhinhanh= Button(tk_main, text='Chụp hình điểm danh', font=(fontTypeApp, 14), fg='white', bg='green',
-            width=18, height=1, command=btn_ddhinhanh)
-            btn_ddhinhanh.place(x=250, y=600)
-            btn_diemdanhrealtime= Button(tk_main, text='Điểm danh real time', font=(fontTypeApp, 14), fg='white', bg='green',
+            btn_doiPass.place(x=250, y = 450)
+            buttonRecognitionImage= Button(mainAppScreen, text = 'Capture attendance', font = (fontTypeApp, 14), fg = 'white', bg='green',
+            width = 18, height = 1, command = recognitionImageFunc)
+            buttonRecognitionImage.place(x = 250, y = 500)
+            btn_diemdanhrealtime= Button(mainAppScreen, text='Điểm danh real time', font=(fontTypeApp, 14), fg='white', bg='green',
             width=18, height=1, command=btn_diemdanhrealtime)
-            btn_diemdanhrealtime.place(x=10, y=600)
-            btn_dsdiemdanh= Button(tk_main, text='Danh sách theo ngày', font=(fontTypeApp, 14), fg='white', bg='green',
+            btn_diemdanhrealtime.place(x=10, y = 500)
+            btn_dsdiemdanh= Button(mainAppScreen, text='Danh sách theo ngày', font=(fontTypeApp, 14), fg='white', bg='green',
             width=18, height=1, command=btn_dsdiemdanh)
-            btn_dsdiemdanh.place(x=10, y=650)
-            Entry_dsdiemdanh = Entry(tk_main, width=20, bd=5,font=(fontTypeApp, 14))
-            Entry_dsdiemdanh.place(x= 250, y=650)
-            lbl_showTT_ten = Label(tk_main, text='', font=(fontTypeApp, 16), fg='red')
-            lbl_showTT_ten.place(x=1050, y=510)
-            lbl_showTT_Ms = Label(tk_main, text='', font=(fontTypeApp, 16), fg='red')
-            lbl_showTT_Ms.place(x=1050, y=550)
+            btn_dsdiemdanh.place(x=10, y = 550)
+            Entry_dsdiemdanh = Entry(mainAppScreen, width=20, bd=5,font=(fontTypeApp, 14))
+            Entry_dsdiemdanh.place(x= 250, y = 550)
+            lableShowNameCapReco = Label(mainAppScreen, text = '', font=(fontTypeApp, 16), fg = 'red')
+            lableShowNameCapReco.place(x = 900, y = 410)
+            lableShowNumberIdCapReco = Label(mainAppScreen, text = '', font=(fontTypeApp, 16), fg = 'red')
+            lableShowNumberIdCapReco.place(x = 900, y = 450)
         
         lableOptionCamera = Label(cameraOptionScreen, text = 'Enter path video or stream (to open camera computer enter 0 or empty)', font = (fontTypeApp, 18), fg = 'green', bg = 'white')
         lableOptionCamera.place(x = 10, y = 10)                

@@ -1,5 +1,5 @@
 from tkinter import messagebox
-from datetime import datetime, time
+from datetime import datetime, date, time
 
 class SearchDate:
     @classmethod
@@ -18,13 +18,13 @@ class CurrentDate:
     @staticmethod
     def dateHourTimeAttendance():
         current = datetime.now()
-        date = date.today()
-        time = current.time()
+        today = date.today()
+        currentTime = current.time()
         startMorning = time(hour = 7, minute = 30, second = 1)
-        endMorning = time(hour = 8, minute = 45, second = 56)
+        endMorning = time(hour = 10, minute = 45, second = 56)
         startAfternoon = time(hour = 4, minute = 25, second = 56)
         endAfternoon = time(hour = 5, minute = 50, second = 56)
-        return date, time, startMorning, endMorning, startAfternoon, endAfternoon
+        return today, currentTime, startMorning, endMorning, startAfternoon, endAfternoon
 
     @staticmethod
     def setupHourAutoExport():
