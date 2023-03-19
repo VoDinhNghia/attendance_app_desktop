@@ -12,81 +12,80 @@ path = 'image_trainning_model'
 
 class FrameAttendanceToday:
     def show():
-        rows_hn = QuerySql.fetchHistoryAttendanceByCurrentDate()
-        tk_hn = Tk()
-        tk_hn.title('Danh sách điểm danh hôm nay')
-        tk_hn.geometry('950x550')
-        tk_hn.resizable(False,False)
-        tk_hn.configure(bg='CornflowerBlue')
-        lbl_title_dshn = Label(tk_hn, text = 'DANH SÁCH ĐIỂM DANH NGAY HÔM NAY', font = (fontTypeApp, 18),fg='green')
-        lbl_title_dshn.place(x=200, y =10)
-        entry_1hn = Label(tk_hn, text='',font = (fontTypeApp, 14))
-        entry_1hn.place(x=10,y =60)
-        entry_2hn = Label(tk_hn, text='',font = (fontTypeApp, 14))
-        entry_2hn.place(x=80, y =60)
-        entry_3hn = Label(tk_hn, text='',font = (fontTypeApp, 14))
-        entry_3hn.place(x=300, y =60)
-        entry_4hn = Label(tk_hn, text='', font = (fontTypeApp, 14))
-        entry_4hn.place(x=500, y =60)
+        resultsFetchData = QuerySql.fetchHistoryAttendanceByCurrentDate()
+        attendanceTodayScreen = Tk()
+        attendanceTodayScreen.title('List attendance today')
+        attendanceTodayScreen.geometry('950x550')
+        attendanceTodayScreen.resizable(False, False)
+        attendanceTodayScreen.configure(bg ='CornflowerBlue')
+        lableTitleAttendanceToday = Label(attendanceTodayScreen, text = 'View list attendance today', font = (fontTypeApp, 18),fg='green')
+        lableTitleAttendanceToday.place(x = 200, y = 10)
+        showNumberId = Label(attendanceTodayScreen, text = '',font = (fontTypeApp, 14))
+        showNumberId.place(x = 10,y = 60)
+        showName = Label(attendanceTodayScreen, text = '',font = (fontTypeApp, 14))
+        showName.place(x = 80, y = 60)
+        showDate = Label(attendanceTodayScreen, text = '',font = (fontTypeApp, 14))
+        showDate.place(x = 300, y = 60)
+        showTime = Label(attendanceTodayScreen, text = '', font = (fontTypeApp, 14))
+        showTime.place(x = 500, y = 60)
 
-        frmhn = Frame(tk_hn)
-        frmhn.pack(side = tkinter.LEFT, padx=50)
-        tvhn = ttk.Treeview(frmhn, columns = (1,2,3,4), show ='headings', height = '15', padding='Centimeters')
-        tvhn.pack(side ='right')
-        verscrlbarhn = ttk.Scrollbar(tk_hn, orient ='vertical', command = tvhn.yview)
-        verscrlbarhn.pack(side ='right', fill ='x') 
-        tvhn.configure(xscrollcommand = verscrlbarhn.set)
-        tvhn.heading(1, text = 'Mã số nhân viên')
-        tvhn.heading(2, text = 'Họ và tên')
-        tvhn.heading(3, text = 'Ngày điểm danh')
-        tvhn.heading(4, text = 'Giờ điểm danh')
-        for i in rows_hn:
-            tvhn.insert('','end',values=i)
+        frameAttendanceToday = Frame(attendanceTodayScreen)
+        frameAttendanceToday.pack(side = tkinter.LEFT, padx = 50)
+        treeviewAttendanceToday = ttk.Treeview(frameAttendanceToday, columns = (1,2,3,4), show ='headings', height = '15', padding='Centimeters')
+        treeviewAttendanceToday.pack(side = 'right')
+        verscrlbarToday = ttk.Scrollbar(attendanceTodayScreen, orient = 'vertical', command = treeviewAttendanceToday.yview)
+        verscrlbarToday.pack(side = 'right', fill = 'x') 
+        treeviewAttendanceToday.configure(xscrollcommand = verscrlbarToday.set)
+        treeviewAttendanceToday.heading(1, text = 'Number Id')
+        treeviewAttendanceToday.heading(2, text = 'Name')
+        treeviewAttendanceToday.heading(3, text = 'Date attendance')
+        treeviewAttendanceToday.heading(4, text = 'Time attendance')
+        for i in resultsFetchData:
+            treeviewAttendanceToday.insert('', 'end', values = i)
 
-        def selectItem(event):
-            curItem = tvhn.focus()
-            get_value = tvhn.item(curItem)
-            a = get_value['values']
-            dv = []
-            for i in a:
-                dv.append(i)
+        def selectItemAttendanceToday(event):
+            pathViewToday = 'image_correct'
+            cursorItem = treeviewAttendanceToday.focus()
+            getValue = treeviewAttendanceToday.item(cursorItem)
+            rowData = getValue['values']
+            values = []
+            for i in rowData:
+                values.append(i)
             try:
-                entry_1hn.configure(text=dv[0])
-                entry_2hn.configure(text=dv[1])
-                entry_3hn.configure(text=dv[2])
-                entry_4hn.configure(text=dv[3])
+                showNumberId.configure(text = values[0])
+                showName.configure(text = values[1])
+                showDate.configure(text =values[2])
+                showTime.configure(text = values[3])
             except:
                 print('error exception')
-            def btn_xoa_ddhn():
+            def deleteRowAttendanceTodayFunc():
                 try:
-                    row = tvhn.selection()[0]
-                    id_f = int(dv[0])
-                    gio_d = dv[3]
+                    rowOnclick = treeviewAttendanceToday.selection()[0]
+                    idOnclick = int(values[0])
+                    timeOnclick = values[3]
                 except:
                     print('error exception')
-                tvhn.delete(row)
-                QuerySql.deleteHistoryAttendance(id_f,gio_d)
-                path2 = 'image_correct'
-                DeleteFile(path2, int(dv[0])).delete()
-                messagebox.showinfo('message', 'Xóa thành công')
-            def btn_xemAnh_ddhn():
-                path2 = 'image_correct'
-                ViewImage(path2, int(dv[0])).view()
+                treeviewAttendanceToday.delete(rowOnclick)
+                QuerySql.deleteHistoryAttendance(idOnclick, timeOnclick)
+                DeleteFile(pathViewToday, int(values[0])).delete()
+                messagebox.showinfo('message', 'Delete row success.')
+            def viewImageAttendanceTodayFunc():
+                ViewImage(pathViewToday, int(values[0])).view()
 
-            btn_xemAnh_ddhn= Button(tk_hn, text='Xem ảnh', font=(fontTypeApp, 14), fg='white', bg='green',
-                            width=10, height=1, command=btn_xemAnh_ddhn)
-            btn_xemAnh_ddhn.place(x=650, y=60)
-            btn_recog_ddhn= Button(tk_hn, text='Xóa', font=(fontTypeApp, 14), fg='white', bg='green',
-                            width=10, height=1, command=btn_xoa_ddhn)
-            btn_recog_ddhn.place(x=770, y=60)
-        def btn_ExToExcel():
-            msnv, hotennv, list_day, list_gio = QuerySql.exportHistoryAttendance()
-            file_name = 'export_execl/attendance_today.xls'
-            Export.excel(msnv,hotennv,list_day,list_gio,file_name)
-            messagebox.showinfo('TB','Export đến file exel thành công')
+            buttonViewImageAttendanceToday = Button(attendanceTodayScreen, text = 'View image', font = (fontTypeApp, 14), fg = 'white', bg = 'green',
+                width = 10, height = 1, command = viewImageAttendanceTodayFunc)
+            buttonViewImageAttendanceToday.place(x = 650, y = 60)
+            buttonDeleteRowAttendanceToday= Button(attendanceTodayScreen, text = 'Delete', font = (fontTypeApp, 14), fg = 'white', bg = 'green',
+                width = 10, height = 1, command = deleteRowAttendanceTodayFunc)
+            buttonDeleteRowAttendanceToday.place(x = 770, y = 60)
+        def exportToExcelAttendanceToday():
+            numberIds, names, dateList, timeList = QuerySql.exportHistoryAttendance()
+            fileName = 'export_excel/attendance_today.xls'
+            Export.excel(numberIds, names, dateList, timeList, fileName)
+            messagebox.showinfo('message', 'Export file excel success.')
 
-        btn_ExToExcel= Button(tk_hn, text='Export to excel', font=(fontTypeApp, 14), fg='white', bg='green',
-                            width=15, height=1, command=btn_ExToExcel)
-        btn_ExToExcel.place(x=350, y=480)
+        buttonExportToExcelAttendanceToday= Button(attendanceTodayScreen, text = 'Export to excel', font = (fontTypeApp, 14), fg = 'white', bg = 'green',
+            width = 15, height = 1, command = exportToExcelAttendanceToday)
+        buttonExportToExcelAttendanceToday.place(x = 350, y = 480)
         
-        tvhn.bind('<Button-1>', selectItem)
+        treeviewAttendanceToday.bind('<Button-1>', selectItemAttendanceToday)
